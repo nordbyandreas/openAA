@@ -8,6 +8,7 @@ import os  # For starting up tensorboard from inside python
 import matplotlib.pyplot as PLT
 import scipy.cluster.hierarchy as SCH  # Needed for dendrograms
 import numpy.random as NPR
+import platform as platform
 
 # ****** SESSION HANDLING *******
 
@@ -55,7 +56,18 @@ def fireup_tensorboard(logdir, logwash=True):
     if logwash: clear_tensorflow_log(logdir)
 
 def clear_tensorflow_log(logdir):
-    os.system('rm ' + logdir +'/events.out.*')
+    folder = 'probeview'
+    if platform.system() == 'Linux':
+        os.system('rm ' + logdir + '/events.out.*')
+    else:
+        for the_file in os.listdir(folder):
+            file_path = os.path.join(folder, the_file)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+                #elif os.path.isdir(file_path): shutil.rmtree(file_path)
+            except Exception as e:
+                print(e)
 
 # ***** GENERATING Simple DATA SETS for MACHINE LEARNING *****
 
@@ -149,16 +161,29 @@ def check_vector_symmetry(v):
     return True
 
 # This produces a set of symmetric vectors and appends the class label onto the end (for ease of use in ML).
-
+#rewritten to return a vector in form [[case_i1, case_i2, case_i3], [target]]
 def gen_symvect_cases(vlen,count,label=1):
-    return [gen_symmetric_vector(vlen) + [label] for i in range(count)]
+    cases = []
+    for i in range(count):
+        case = []
+        case.append(gen_symmetric_vector(vlen))
+        case.append([label])
+        cases.append(case)
+    #return [gen_symmetric_vector(vlen) + [label] for i in range(count)]
+    return cases
 
+
+#rewritten to return a vector in form [[case_i1, case_i2, case_i3], [target]]
 def gen_anti_symvect_cases(vlen,count,label=0):
     cases = []
     while len(cases) < count:
+        case = []
         v = gen_dense_vector(vlen,density=NPR.uniform(0,1))
         if not(check_vector_symmetry(v)):
-            cases.append(v+[label])
+            case.append(v)
+            case.append([label])
+            cases.append(case)
+            #cases.append(v+[label])
     return cases
 
 # Generate a dataset with an equal (or nearly so if vlen is odd) number of symmetric and anti-symmetric bit vectors
