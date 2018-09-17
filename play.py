@@ -18,8 +18,7 @@ def generateData():
         return generateData()
     return False
 
-
-
+    
 
 
 datainput = generateData()
