@@ -17,10 +17,19 @@ class InputParser():
             self.data_loader(s[1])
         elif cmd == "build_model":
             print("build model")
+            self.build_model()
+
         elif cmd == "visualize":
-            print("visualize") 
+            print("visualize")
         elif cmd == "run":
             print("run") 
+
+
+
+    def build_model(self):
+        model = Gann([784, 100, 10, 1], self.openAA.get_case_manager())
+        model.build()
+        model.run()
 
 
 
@@ -57,19 +66,9 @@ class InputParser():
             #- reorganize into [[[input1], [target ]], [[input1], [target ]]]
             # -scale between [0-1]
             cases = mnist.load_flat_text_cases("all_flat_mnist_training_cases_text.txt")
-            c = TFT.gen_vector_count_cases(500, 15)
-            print(len(c))
-            print(len(c[0]))
-            print(len(c[0][0]))
-            print(len(c[0][1]))
-            print("-------")
-            print(len(cases))
-            print(len(cases[0]))
-            print(len(cases[0][0]))
+            ds = CaseManager(cases, 0.1, 0.1)
             
-
-            #self.openAA.set_case_manager()
-            pass
+            self.openAA.set_case_manager(ds)
 
         elif dataset == "wine":
             #TODO : load wine dataset in correct format

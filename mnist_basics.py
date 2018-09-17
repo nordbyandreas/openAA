@@ -169,9 +169,19 @@ def load_flat_text_cases(filename, dir=__mnist_path__):
     f = open(dir + filename, "r")
     lines = [line.split(" ") for line in f.read().split("\n")]
     f.close()
-    x_l = list(map(int, lines[0]))
-    x_t = [list(map(int, line)) for line in lines[1:]]
-    return x_t, x_l
+    res = []
+    x_l = lines[0]
+    x_t = lines[1:]
+    for i in range(100):
+        temp = []
+        inp = []
+        for x in x_t[i]:
+            inp.append(int(x))
+        temp.append(inp)
+        temp.append([int(x_l[i])])
+        res.append(temp)
+    print(res[0])
+    return res
 
 ''' Old Evaluation Procedure (for Autumn 2015) that involved "Blind Testing".
 
