@@ -297,7 +297,7 @@ class CaseManager():
 
 #Parity 
 
-
+"""
 keepRunning = True
 while keepRunning:
     run = input("start?  'y' to run")
@@ -307,7 +307,7 @@ while keepRunning:
         model.run(epochs=100)
     else: 
         keepRunning = False
-
+"""
 
 
 
@@ -345,6 +345,7 @@ keepRunning = True
 while keepRunning:
     run = input("start?  'y' to run")
     if run == "y":
+        ##wrong method here !
         cases = TFT.gen_all_one_hot_cases(3, 10)
         print(cases)
         cman = CaseManager(cases, 0.1, 0.1)
