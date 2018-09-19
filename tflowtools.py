@@ -492,3 +492,13 @@ def dendrogram(features,labels,metric='euclidean',mode='average',ax=None,title='
     ax.set_title(title)
     ax.set_ylabel(metric + ' distance')
     PLT.show()
+
+
+# ****** Get Fraction of Cases ********
+# Reduces the size of a data set by a given fraction.
+# Can be used for large data sets such as mnist
+def get_fraction_of_cases(cases, caseFraction):
+    step = math.floor(1/caseFraction)
+    return [cases[i] for i in range(0,len(cases), step)]
+
+

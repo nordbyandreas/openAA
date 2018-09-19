@@ -9,6 +9,7 @@ from array import array as pyarray
 import matplotlib.pyplot as pyplot
 import numpy
 import pickle
+import tflowtools as TFT
 #  import requests  # Old stuff
 
 # The reduce function was removed in Python 3.0, so just use this handmade version.
@@ -165,23 +166,28 @@ def quicktest(n = 99):
     show_avg_digit(5)
 
 # For reading flat cases from a TEXT file (as provided by Valerij). This is needed for the demo!
-def load_flat_text_cases(filename, dir=__mnist_path__):
+def load_flat_text_cases(filename, dir=__mnist_path__, ):
     f = open(dir + filename, "r")
     lines = [line.split(" ") for line in f.read().split("\n")]
     f.close()
-    res = []
-    x_l = lines[0]
-    x_t = lines[1:]
-    for i in range(100):
-        temp = []
-        inp = []
-        for x in x_t[i]:
-            inp.append(int(x))
-        temp.append(inp)
-        temp.append([int(x_l[i])])
-        res.append(temp)
-    print(res[0])
-    return res
+    x_l = [TFT.int_to_one_hot(int(fv), 10) for fv in lines[0]]
+    x_t = numpy.array([lines[i] for i in range(1, len(lines))]).astype(int)
+    x_t = x_t/255
+    #x_t = normalize_inputs(x_t.astype(int))
+
+    print (len(x_t))
+
+    return [[l, t] for l, t in zip(x_t, x_l)]
+
+def normalize_inputs(inputs):
+    tmp = inputs.transpose
+    for val in tmp():
+        max = val.max
+        min = val.min
+        mean = val.average
+        for n in val:
+            n = (n-mean)/(max-min)
+    return inputs.transpose
 
 ''' Old Evaluation Procedure (for Autumn 2015) that involved "Blind Testing".
 

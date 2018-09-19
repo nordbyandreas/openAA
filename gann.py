@@ -123,6 +123,10 @@ class Gann():
                 _,grabvals,_ = self.run_one_step([self.trainer], gvars, self.probes, session=sess, 
                                 feed_dict=feeder, step=step, display_interval=self.display_interval)
                 error += grabvals[0]
+            print("------error------- loop: "+str(i))
+            print(str(error/num_minibatches))
+            print("-----target and output ---- ")
+            #print(sess.run(self.target))
             self.error_history.append((step, error/num_minibatches))
             self.consider_validation_testing(step, sess)
         self.global_training_step += epochs
