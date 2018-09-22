@@ -22,7 +22,7 @@ import tflowtools as TFT
 class Gann():
     def __init__(self, layer_dims, case_manager, learning_rate=.1,
      display_interval=None, minibatch_size=10,
-      validation_interval=None, softmax=False):
+      validation_interval=None, softmax=False, error_function="mse"):
    
         self.layer_dims = layer_dims     # dimensions of each layer: [input_dim, x, y, z, output_dim]
         self.case_manager = case_manager  #case manager for the model
@@ -37,12 +37,13 @@ class Gann():
         self.validation_interval = validation_interval  
         self.validation_history = []
 
+        self.error_function = error_function
         self.softmax_outputs = softmax
         self.layer_modules = []  # layer_modules generated from layer_dims spec - contains weights, biases, etc
-        self.build()  #builds the Gann
+        self.build(self.error_function)  #builds the Gann
 
 
-    def build(self):
+    def build(self, error_function):
         tf.reset_default_graph()  # This is essential for doing multiple runs
         num_inputs = self.layer_dims[0]
         self.input = tf.placeholder(tf.float64, shape=(None, num_inputs), name="Input")
@@ -55,10 +56,13 @@ class Gann():
         self.output = layer_module.output #output of last layer is teh output of the whole network
         if self.softmax_outputs: self.output = tf.nn.softmax(self.output)
         self.target = tf.placeholder(tf.float64, shape=(None, layer_module.outsize), name="Target")
-        self.configure_learning()
+        self.configure_learning(error_function)
 
-    def configure_learning(self):
-        self.error = tf.reduce_mean(tf.square(self.target - self.output), name="MSE")
+    def configure_learning(self, error_function):
+        if error_function == "mse" or error_function == "mean_squared_error":
+            self.error = tf.reduce_mean(tf.square(self.target - self.output), name="MSE")
+        elif error_function == "cross_entropy" or error_function == "ce":
+            self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
         self.predictor = self.output #simple prediction runs will request the value of output neurons
         #defining the training operator
         optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)

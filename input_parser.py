@@ -4,21 +4,45 @@ import numpy as np
 import mnist_basics as mnist
 import filereader as fr
 
+
+class ModelParameters():
+    def __init__(self):
+        #build params
+        self.layer_dims = []
+        self.learning_rate = 0.1
+        self.display_interval = None
+        self.global_training_step = 0
+        self.minibatch_size = 10
+        self.validation_interval = None
+        self.softmax = False
+        self.error_function = "mse"
+        
+        #training
+        self.epochs = 100
+        self.bestk = None
+
+    def __str__(self):
+        return ', '.join(['{key}={value}'.format(key=key, value=self.__dict__.get(key)) for key in self.__dict__])
+ 
+
+
+
 class InputParser():
+
+
     def __init__(self, openAA):
         self.openAA = openAA
+        self.mp = ModelParameters()
 
    
     def evaluator(self, inputString):
         s = inputString.split()
         cmd = s[0]
-        dimensions = []
-        learningrate = 0.1
-        epochs = 100
-        bestk = None
-        softmax = False
+
+        mp = ModelParameters()
+
         print(len(s))
-        if cmd == "load_data":
+        if cmd == "load_data" or cmd == "ld":
             print("load data")
             caseFraction = 1
             validationFraction = 0.1
@@ -39,50 +63,58 @@ class InputParser():
 
             self.data_loader(dataSet, caseFraction, testFraction, validationFraction)
 
-        elif cmd == "build_model":
-            print("build model")
+        elif cmd == "setup_model" or cmd == "sm":
+            print("configuring model params")
             for i in range(1, len(s)):
                 if s[i][0]!="-":
                     continue
                 if s[i] == "-dimensions" or s[i] == "-d":
+                    self.mp.layer_dims.clear()
                     for j in range(i+1, len(s)):
                         if s[j][0]=="-":
                             break
-                        dimensions.append(int(s[j]))
+                        self.mp.layer_dims.append(int(s[j]))
                 elif s[i] == "-learningrate" or s[i] == "-lr":
-                    learningrate = float(s[i+1])
+                    self.mp.learning_rate = float(s[i+1])
                 elif s[i] == "-epochs" or s[i] == "-e":
-                    epochs = int(s[i+1])
+                    self.mp.epochs = int(s[i+1])
                 elif s[i] == "-bestk" or s[i] == "-bk":
-                    bestk = int(s[i+1])
+                    self.mp.bestk = int(1)
                 elif s[i] == "-softmax" or s[i] == "-sm":
-                    softmax = True
+                    self.mp.softmax = True
+                elif s[i] == "-error_function" or s[i] == "-ef":
+                    self.mp.error_function = s[i+1]
+                elif s[i] == "-validation_interval" or s[i] =="-vint":
+                    self.mp.validation_interval = int(s[i+1])
 
-                    
-            self.build_model(dimensions, learningrate, epochs, softmax, bestk)
-
+            print("\n -------- MODEL PARAMETERS:\n")
+            print(self.mp)
+            print("\n\n")
+        
         elif cmd == "visualize":
             print("visualize")
-        elif cmd == "run":
-            print("run") 
+        elif cmd == "run_model" or cmd == "run":
+            print("\n\n starting up .. ! \n") 
+            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, self.mp.softmax, self.mp.bestk, self.mp.error_function, self.mp.validation_interval)
+        elif cmd == "view_model" or cmd == "vm" or cmd == "view":
+            print("\n -------- MODEL PARAMETERS:\n")
+            print(self.mp)
+            print("\n\n")
         else:
             print("command \""+cmd+"\" not recognized")
 
 
 
-    def build_model(self, dimensions, learning_rate, epochs, softmax, bestk):
-        model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, softmax=softmax)
-        #model = Gann([784, 784, 784, 28, 10], self.openAA.get_case_manager(), learning_rate=0.1, validation_interval=10, softmax=True)
-        model.build()
-        model.run(epochs=epochs)
-
-
+    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, error_function, validation_interval):
+        model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, softmax=softmax, error_function=error_function, validation_interval=validation_interval)
+        self.openAA.set_model(model)
+        model.run(epochs=epochs, bestk=bestk)
 
     def data_loader(self, dataset, caseFraction, testFraction, validationFraction):
         if dataset == "parity":
             length = int(input("Length of vectors: "))
             doubleFlag = input("Activate double flag y/n: ")
-            ds = CaseManager(TFT.gen_all_parity_cases(leng, doubleFlag=="y"), validation_fraction=validationFraction, test_fraction=testFraction)
+            ds = CaseManager(TFT.gen_all_parity_cases(length, doubleFlag=="y"), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
 
             #use this to set size of input layer 
