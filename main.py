@@ -34,14 +34,15 @@ def main():
     inputparser = InputParser(openAA)
 
     while True:
-      cmd = input('$$$: ')
-      inputparser.evaluator(cmd)
-     
-      if cmd == "q":
-          break
+        cmd = input('$$$: ')
+      
+        if cmd == "q":
+            break
 
-      if cmd == "h":
-          print("help is coming..!")
+        if cmd == "h":
+            print("help is coming..!")
+        
+        inputparser.evaluator(cmd)
 
 
 
