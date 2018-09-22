@@ -23,7 +23,9 @@ class Gann():
     def __init__(self, layer_dims, case_manager, learning_rate=.1,
      display_interval=None, minibatch_size=10,
       validation_interval=None, softmax=False, error_function="mse",
-      hidden_activation_function="relu"):
+      hidden_activation_function="relu",
+      optimizer="gradient_descent",
+      w_range=[-0.1, 0.1]):
    
         self.layer_dims = layer_dims     # dimensions of each layer: [input_dim, x, y, z, output_dim]
         self.case_manager = case_manager  #case manager for the model
@@ -39,6 +41,8 @@ class Gann():
         self.validation_history = []
 
         self.hidden_activation_function = hidden_activation_function
+        self.optimizer = optimizer
+        self.w_range = w_range
 
         self.error_function = error_function
         self.softmax_outputs = softmax
@@ -53,7 +57,7 @@ class Gann():
 
         #Build layer modules
         for i, outsize in enumerate(self.layer_dims[1:]):
-            layer_module = LayerModule(self, i, invar, insize, outsize, self.hidden_activation_function)
+            layer_module = LayerModule(self, i, invar, insize, outsize, self.hidden_activation_function, self.w_range)
             invar = layer_module.output; insize = layer_module.outsize 
         self.output = layer_module.output #output of last layer is teh output of the whole network
         if self.softmax_outputs: self.output = tf.nn.softmax(self.output)
@@ -67,8 +71,16 @@ class Gann():
             self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
         self.predictor = self.output #simple prediction runs will request the value of output neurons
         #defining the training operator
-        optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
+        if self.optimizer == "gradient_descent":
+            optimizer = tf.train.GradientDescentOptimizer(self.learning_rate)
+        elif self.optimizer == "adagrad":
+            optimizer = tf.train.AdagradOptimizer(self.learning_rate)
+        elif self.optimizer == "adam":
+            optimizer = tf.train.AdamOptimizer(self.learning_rate)
+        elif self.optimizer == "rms":
+            optimizer = tf.train.RMSPropOptimizer(self.learning_rate)
         self.trainer = optimizer.minimize(self.error, name="Backprop")
+
 
     def add_layer_module(self, layer_module):
         self.layer_modules.append(layer_module)
@@ -84,7 +96,7 @@ class Gann():
 
 
     def close_current_session(self, view=True):
-        #self.save_session_params(sess=self.current_session)
+        self.save_session_params(sess=self.current_session)
         TFT.close_session(self.current_session, view=view)
 
     def save_session_params(self, spath='netsaver/my_saved_session', sess=None, step=0):
@@ -95,6 +107,19 @@ class Gann():
             state_vars = state_vars + vars
         self.state_saver = tf.train.Saver(state_vars)
         self.saved_state_path = self.state_saver.save(session, spath, global_step=step)
+
+    
+    def predict(self, case, bestk=None):
+        self.reopen_current_session()
+        feeder = {self.input: [case[0]]}
+        print("input: ")
+        print([case[0]])
+        print("target: ")
+        print([case[1]])
+        print("output: ")
+        print(self.current_session.run(self.output, feed_dict=feeder))
+    
+
 
 
     def testing_session(self, sess, bestk=None):
@@ -174,6 +199,25 @@ class Gann():
 
 
 
+    # After a run is complete, runmore allows us to do additional training on the network, picking up where we
+    # left off after the last call to run (or runmore).  Use of the "continued" parameter (along with
+    # global_training_step) allows easy updating of the error graph to account for the additional run(s).
+
+    def runmore(self,epochs=100,bestk=None):
+        self.reopen_current_session()
+        self.run(epochs,sess=self.current_session,continued=True,bestk=bestk)
+
+
+    def reopen_current_session(self):
+        self.current_session = TFT.copy_session(self.current_session)  # Open a new session with same tensorboard stuff
+        self.current_session.run(tf.global_variables_initializer())
+        self.restore_session_params()  # Reload old weights and biases to continued from where we last left off
+
+    def restore_session_params(self, path=None, sess=None):
+        spath = path if path else self.saved_state_path
+        session = sess if sess else self.current_session
+        self.state_saver.restore(session, spath)
+
      
     def display_grabvars(self, grabbed_vals, grabbed_vars, step=1):
         names = [x.name for x in grabbed_vars];
@@ -237,7 +281,7 @@ class Gann():
 # A general ann module = a layer of neurons (the output) plus its incoming weights and biases.
 class LayerModule():
 
-    def __init__(self, ann, index, invariable, insize, outsize, hidden_activation_function):
+    def __init__(self, ann, index, invariable, insize, outsize, hidden_activation_function, w_range):
         self.ann = ann  # the ANN that this module is a part of
         self.insize = insize  # Number of neurons feeding into this module
         self.outsize = outsize # Number of neurons in this module
@@ -245,13 +289,24 @@ class LayerModule():
         self.index = index
         self.hidden_activation_function = hidden_activation_function
         self.name = "Module-"+str(self.index)
+        self.w_range = w_range
         self.build()
 
     def build(self):
         layer_name = self.name; layer_outsize = self.outsize
-        self.weights = tf.Variable(np.random.uniform(-0.1, 0.1, size=(self.insize, self.outsize)),
-                        name=self.name + "-weights", trainable=True)
-        self.biases = tf.Variable(np.random.uniform(-0.1, 0.1, size=self.outsize),
+        if self.w_range == "scaled":
+            if self.hidden_activation_function == "relu":
+                self.weights = tf.Variable(np.random.randn(self.insize, self.outsize)*np.sqrt(2/self.insize),
+                            name=self.name + "-weights", trainable=True)
+            else:
+                self.weights = tf.Variable(np.random.randn(self.insize, self.outsize)*np.sqrt(1/self.insize),
+                            name=self.name + "-weights", trainable=True)
+
+        else:
+            self.weights = tf.Variable(np.random.uniform(self.w_range[0], self.w_range[1], size=(self.insize, self.outsize)),
+                            name=self.name + "-weights", trainable=True)
+
+        self.biases = tf.Variable(np.random.uniform(0, 0, size=self.outsize),
                         name=self.name + "-bias", trainable=True)
         #Edited setting hidden activation function
         if self.hidden_activation_function == "relu":

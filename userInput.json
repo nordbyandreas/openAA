@@ -1,0 +1,55 @@
+{
+    "dimenstions": {
+        "input layer": 10,
+        "layer one": 20,
+        "layer two": 10,
+        "output layer": 1
+    },
+
+    "hiddenActivationFunction": "hidde activation function",
+
+    "outputActivationFunction": "output activation function",
+
+    "costFunction": "Cost function",
+
+    "cearningRate": 0.1,
+
+    "initialWeightRange": {
+        "lowerbound": -1,
+        "upperbound": 1
+    },
+
+    "optimizer": "ADAM",
+
+    "dataSource": "parity",
+
+    "caseFraction": 1,
+
+    "validationFunction": "valfunction",
+
+    "validationInterval": 10,
+
+    "validationFraction": 0.1,
+    
+    "testFraction": 0.1,
+
+    "minibatchSize": 10,
+
+    "mapBatchSize": 10,
+
+    "steps": 100,
+
+    "mapLayers": {
+        "layerOne": 10,
+        "layerTwo": 1
+    },
+
+    "mapDendrograms": {
+        "layerOne": 10,
+        "layerTwo": 1
+    },
+
+    "displayWeights": 0,
+
+    "displayBiases": 0
+}

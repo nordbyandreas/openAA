@@ -17,6 +17,8 @@ class ModelParameters():
         self.softmax = False
         self.error_function = "mse"
         self.hidden_activation_function = "relu"
+        self.optimizer = "gradient_descent"
+        self.w_range = "scaled"
         
         #training
         self.epochs = 100
@@ -42,14 +44,13 @@ class InputParser():
 
         mp = ModelParameters()
 
-        print(len(s))
         if cmd == "load_data" or cmd == "ld":
             print("load data")
             caseFraction = 1
             validationFraction = 0.1
             testFraction = 0.1
             for i in range (0, len(s)):
-                print(i+1)
+             
                 if s[i][0]!="-":
                     continue
                 if s[i] == "-dataset" or s[i] == "-ds":
@@ -63,6 +64,14 @@ class InputParser():
                 
 
             self.data_loader(dataSet, caseFraction, testFraction, validationFraction)
+        
+        elif cmd == "load_json" or cmd == "lj":
+            inputdata = json.load(open(s[1]))
+            self.layer_dims = [int(i) for i in inputdata["dimenstions"]]
+            self.learning_rate = inputdata["learningRate"]
+            self.display_interval = None
+            self.global_training_step = 0
+            #TODO: add rest of inputs for json9  
 
         elif cmd == "setup_model" or cmd == "sm":
             print("configuring model params")
@@ -89,6 +98,16 @@ class InputParser():
                     self.mp.validation_interval = int(s[i+1])
                 elif s[i] == "-hidden_activation_function" or s[i] == "-ha":
                     self.mp.hidden_activation_function = s[i+1]
+                elif s[i] == "-optimizer" or s[i] == "-o":
+                    self.mp.optimizer = s[i+1]
+                elif s[i] == "-w_range" or s[i] == "-wr":
+                    if s[i+1] == "scaled":
+                        self.mp.w_range = "scaled"
+                    else:
+                        self.mp.w_range = []
+                        self.mp.w_range.append(float(s[i+1]))
+                        self.mp.w_range.append(float(s[i+2]))
+
 
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -98,19 +117,27 @@ class InputParser():
             print("visualize")
         elif cmd == "run_model" or cmd == "run":
             print("\n\n starting up .. ! \n") 
-            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, self.mp.softmax, self.mp.bestk, self.mp.error_function, self.mp.validation_interval, self.mp.hidden_activation_function)
+            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, self.mp.softmax, self.mp.bestk, self.mp.error_function, 
+            self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, self.mp.w_range)
         elif cmd == "view_model" or cmd == "vm" or cmd == "view":
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
             print("\n\n")
+        elif cmd == "predict":
+            print(self.openAA.get_case_manager().get_testing_cases()[0])
+            print(self.openAA.get_case_manager().get_testing_cases()[1])
+            self.openAA.model.predict([[1, 1, 1, 1, 1, 0, 0, 0, 0, 0],[1]])
+            self.openAA.model.predict([[1, 0, 1, 0, 1, 0, 1, 1, 1, 0],[0]])
+            self.openAA.model.predict([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0]])
+            self.openAA.model.predict([[1, 1, 1, 1, 1, 1, 1, 1, 1, 0],[1]])
         else:
             print("command \""+cmd+"\" not recognized")
 
 
 
-    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, error_function, validation_interval, hidden_activation_function):
+    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, error_function, validation_interval, hidden_activation_function, optimizer, w_range):
         model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, softmax=softmax, error_function=error_function, validation_interval=validation_interval,
-        hidden_activation_function=hidden_activation_function)
+        hidden_activation_function=hidden_activation_function, optimizer=optimizer, w_range=w_range)
         self.openAA.set_model(model)
         model.run(epochs=epochs, bestk=bestk)
 
