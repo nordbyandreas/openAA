@@ -16,6 +16,7 @@ class ModelParameters():
         self.validation_interval = None
         self.softmax = False
         self.error_function = "mse"
+        self.hidden_activation_function = "relu"
         
         #training
         self.epochs = 100
@@ -86,6 +87,8 @@ class InputParser():
                     self.mp.error_function = s[i+1]
                 elif s[i] == "-validation_interval" or s[i] =="-vint":
                     self.mp.validation_interval = int(s[i+1])
+                elif s[i] == "-hidden_activation_function" or s[i] == "-ha":
+                    self.mp.hidden_activation_function = s[i+1]
 
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -95,7 +98,7 @@ class InputParser():
             print("visualize")
         elif cmd == "run_model" or cmd == "run":
             print("\n\n starting up .. ! \n") 
-            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, self.mp.softmax, self.mp.bestk, self.mp.error_function, self.mp.validation_interval)
+            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, self.mp.softmax, self.mp.bestk, self.mp.error_function, self.mp.validation_interval, self.mp.hidden_activation_function)
         elif cmd == "view_model" or cmd == "vm" or cmd == "view":
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -105,8 +108,9 @@ class InputParser():
 
 
 
-    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, error_function, validation_interval):
-        model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, softmax=softmax, error_function=error_function, validation_interval=validation_interval)
+    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, error_function, validation_interval, hidden_activation_function):
+        model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, softmax=softmax, error_function=error_function, validation_interval=validation_interval,
+        hidden_activation_function=hidden_activation_function)
         self.openAA.set_model(model)
         model.run(epochs=epochs, bestk=bestk)
 

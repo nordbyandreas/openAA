@@ -22,7 +22,8 @@ import tflowtools as TFT
 class Gann():
     def __init__(self, layer_dims, case_manager, learning_rate=.1,
      display_interval=None, minibatch_size=10,
-      validation_interval=None, softmax=False, error_function="mse"):
+      validation_interval=None, softmax=False, error_function="mse",
+      hidden_activation_function="relu"):
    
         self.layer_dims = layer_dims     # dimensions of each layer: [input_dim, x, y, z, output_dim]
         self.case_manager = case_manager  #case manager for the model
@@ -37,11 +38,12 @@ class Gann():
         self.validation_interval = validation_interval  
         self.validation_history = []
 
+        self.hidden_activation_function = hidden_activation_function
+
         self.error_function = error_function
         self.softmax_outputs = softmax
         self.layer_modules = []  # layer_modules generated from layer_dims spec - contains weights, biases, etc
         self.build(self.error_function)  #builds the Gann
-
 
     def build(self, error_function):
         tf.reset_default_graph()  # This is essential for doing multiple runs
@@ -51,7 +53,7 @@ class Gann():
 
         #Build layer modules
         for i, outsize in enumerate(self.layer_dims[1:]):
-            layer_module = LayerModule(self, i, invar, insize, outsize)
+            layer_module = LayerModule(self, i, invar, insize, outsize, self.hidden_activation_function)
             invar = layer_module.output; insize = layer_module.outsize 
         self.output = layer_module.output #output of last layer is teh output of the whole network
         if self.softmax_outputs: self.output = tf.nn.softmax(self.output)
@@ -235,12 +237,13 @@ class Gann():
 # A general ann module = a layer of neurons (the output) plus its incoming weights and biases.
 class LayerModule():
 
-    def __init__(self, ann, index, invariable, insize, outsize):
+    def __init__(self, ann, index, invariable, insize, outsize, hidden_activation_function):
         self.ann = ann  # the ANN that this module is a part of
         self.insize = insize  # Number of neurons feeding into this module
         self.outsize = outsize # Number of neurons in this module
         self.input = invariable  # Either the gann's input variable or the upstream module's output
         self.index = index
+        self.hidden_activation_function = hidden_activation_function
         self.name = "Module-"+str(self.index)
         self.build()
 
@@ -250,7 +253,27 @@ class LayerModule():
                         name=self.name + "-weights", trainable=True)
         self.biases = tf.Variable(np.random.uniform(-0.1, 0.1, size=self.outsize),
                         name=self.name + "-bias", trainable=True)
-        self.output = tf.nn.relu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        #Edited setting hidden activation function
+        if self.hidden_activation_function == "relu":
+            self.output = tf.nn.relu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "relu6":
+            self.output = tf.nn.relu6(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "crelu":
+            self.output = tf.nn.crelu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "elu":
+            self.output = tf.nn.elu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "softplus":
+            self.output = tf.nn.softplus(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "softsign":
+            self.output = tf.nn.softsign(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "dropout":
+            self.output = tf.nn.dropout(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "bias_add":
+            self.output = tf.nn.bias_add(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "sigmoid":
+            self.output = tf.nn.sigmoid(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "tanh":
+            self.output = tf.nn.tanh(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
         self.ann.add_layer_module(self)
 
     def getvar(self,type):  # type = (in,out,wgt,bias)
