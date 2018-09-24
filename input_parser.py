@@ -120,13 +120,18 @@ class InputParser():
                         self.mp.w_range.append(float(s[i+2]))
                 elif s[i] == "-add_grabvars" or s[i] == "-ag":
                     print("\n-- 'add grabvars', choose layerindex and type: \n")
-                    print("layers: " + "".join(str(e) for e in self.mp.layer_dims))
+                    print("layers: " + " ".join(str(e) for e in self.mp.layer_dims))
                     print("types:  wgt , bias, out, in")
-                    index = int(input("choose layer: "))
-                    t = str(input("choose type: "))
-                    self.mp.grabvars_indexes.append(index)
-                    self.mp.grabvars_types.append(t)
-                    print(t + " from index " + str(index) + " added. \n")
+                    print("index 0 targets the first hidden layers etc.")
+                    if s[i+1] == "clear":
+                        self.mp.grabvars_indexes = []
+                        self.mp.grabvars_types = []
+                    else:
+                        index = int(input("choose layer: "))
+                        t = str(input("choose type: "))
+                        self.mp.grabvars_indexes.append(index)
+                        self.mp.grabvars_types.append(t)
+                        print(t + " from index " + str(index) + " added. \n")
 
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -147,6 +152,9 @@ class InputParser():
         elif cmd == "predict":
             numCases = int(input("how many cases ? "))
             self.openAA.model.predict(numCases)
+        elif cmd == "do_mapping" or cmd == "map":
+            numCases = int(input("number of cases?  (15-20 is normal) : "))
+            self.openAA.model.do_mapping(numCases=numCases)
         else:
             print("command \""+cmd+"\" not recognized")
 

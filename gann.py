@@ -133,25 +133,33 @@ class Gann():
         self.close_current_session(view=False)
         print("\n\n ..predictions over ...  \n\n")
 
-    def do_mapping(self, sess, numCases, msg="Mapping"):
+    def do_mapping(self, numCases = 15, msg="Mapping"):
+        names = [x.name for x in self.grabvars]
         self.reopen_current_session()
         tCases = self.case_manager.get_training_cases()
+        cases = []
         mapList = []
-        for j in range(numCases):
-            index = randint(0, len(tCases)-1)
-            case = tCases[index]
-            feeder = {self.input: [case[0]]}
-            result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
-            mapList.append(result[1])
+        for i in range(0, numCases):
+            print(i)
+            cases.append(tCases[i])
+        inputs = [c[0] for c in cases]; targets = [c[1] for c in cases]
+        feeder = {self.input: inputs, self.target: targets}
+        
+        result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
 
-        print(mapList)
+        for i, v in enumerate(result[1]):
+            if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
+                TFT.hinton_plot(v, fig=self.grabvar_figures[i],title= names[i])
+            else:
+                print(v, end="\n\n")       
+        
         self.close_current_session(view=False)
 
 
 
     # Grabvars are displayed by my own code, so I have more control over the display format.  Each
     # grabvar gets its own matplotlib figure in which to display its value.
-    def add_grabvar(self,module_index,type='wgt'):
+    def add_grabvar(self, module_index, type='wgt'):
         self.grabvars.append(self.layer_modules[module_index].getvar(type))
         self.grabvar_figures.append(PLT.figure())
 
