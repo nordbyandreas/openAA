@@ -38,11 +38,20 @@ def main():
       
         if cmd == "q":
             break
-
-        if cmd == "h":
-            print("help is coming..!")
-        
-        inputparser.evaluator(cmd)
+        elif cmd == "h":
+            print("\n -List of commands: -----------\n")
+            print("1. load_data   (load datasets)")
+            print("2. load_json   (load settings from json file)")
+            print("3. setup_model (set GANN and training parameters)")
+            print("4. visualize   (set visualization modes)")
+            print("5. run_model   (build the GANN and train it)")
+            print("6. view_model  (view GANN and training paramters)")
+            print("7. predict     (run some cases through the trained GANN and look at the predictions)")
+            print("\n For now you will have to read through the code to see how these are used.\n Might add DOCS and better help-instructions here later")
+        elif cmd == "":
+            continue
+        else:
+            inputparser.evaluator(cmd)
 
 
 

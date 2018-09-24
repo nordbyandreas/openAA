@@ -3,6 +3,7 @@ from gann import *
 import numpy as np
 import mnist_basics as mnist
 import filereader as fr
+import matplotlib.pyplot as PLT
 
 
 class ModelParameters():
@@ -19,13 +20,18 @@ class ModelParameters():
         self.hidden_activation_function = "relu"
         self.optimizer = "gradient_descent"
         self.w_range = "scaled"
+
+        #variables to observe
+        self.grabvars_indexes = []
+        self.grabvars_types = []
+        
         
         #training
         self.epochs = 100
         self.bestk = None
 
     def __str__(self):
-        return ', '.join(['{key}={value}'.format(key=key, value=self.__dict__.get(key)) for key in self.__dict__])
+        return ' ,  '.join(['( {key} = {value} )'.format(key=key, value=self.__dict__.get(key)) for key in self.__dict__])
  
 
 
@@ -86,10 +92,15 @@ class InputParser():
                         self.mp.layer_dims.append(int(s[j]))
                 elif s[i] == "-learningrate" or s[i] == "-lr":
                     self.mp.learning_rate = float(s[i+1])
+                elif s[i] == "-display_interval" or s[i] == "-di":
+                    self.mp.display_interval = int(s[i+1])
                 elif s[i] == "-epochs" or s[i] == "-e":
                     self.mp.epochs = int(s[i+1])
                 elif s[i] == "-bestk" or s[i] == "-bk":
-                    self.mp.bestk = int(1)
+                    if self.mp.bestk == None:
+                        self.mp.bestk = int(1)
+                    else:
+                        self.mp.bestk = None
                 elif s[i] == "-softmax" or s[i] == "-sm":
                     self.mp.softmax = True
                 elif s[i] == "-error_function" or s[i] == "-ef":
@@ -107,7 +118,15 @@ class InputParser():
                         self.mp.w_range = []
                         self.mp.w_range.append(float(s[i+1]))
                         self.mp.w_range.append(float(s[i+2]))
-
+                elif s[i] == "-add_grabvars" or s[i] == "-ag":
+                    print("\n-- 'add grabvars', choose layerindex and type: \n")
+                    print("layers: " + "".join(str(e) for e in self.mp.layer_dims))
+                    print("types:  wgt , bias, out, in")
+                    index = int(input("choose layer: "))
+                    t = str(input("choose type: "))
+                    self.mp.grabvars_indexes.append(index)
+                    self.mp.grabvars_types.append(t)
+                    print(t + " from index " + str(index) + " added. \n")
 
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -117,27 +136,29 @@ class InputParser():
             print("visualize")
         elif cmd == "run_model" or cmd == "run":
             print("\n\n starting up .. ! \n") 
-            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, self.mp.softmax, self.mp.bestk, self.mp.error_function, 
-            self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, self.mp.w_range)
+            self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, 
+                                self.mp.softmax, self.mp.bestk, self.mp.error_function, 
+                                self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, 
+                                self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval)
         elif cmd == "view_model" or cmd == "vm" or cmd == "view":
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
             print("\n\n")
         elif cmd == "predict":
-            print(self.openAA.get_case_manager().get_testing_cases()[0])
-            print(self.openAA.get_case_manager().get_testing_cases()[1])
-            self.openAA.model.predict([[1, 1, 1, 1, 1, 0, 0, 0, 0, 0],[1]])
-            self.openAA.model.predict([[1, 0, 1, 0, 1, 0, 1, 1, 1, 0],[0]])
-            self.openAA.model.predict([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],[0]])
-            self.openAA.model.predict([[1, 1, 1, 1, 1, 1, 1, 1, 1, 0],[1]])
+            numCases = int(input("how many cases ? "))
+            self.openAA.model.predict(numCases)
         else:
             print("command \""+cmd+"\" not recognized")
 
 
 
-    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, error_function, validation_interval, hidden_activation_function, optimizer, w_range):
-        model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, softmax=softmax, error_function=error_function, validation_interval=validation_interval,
-        hidden_activation_function=hidden_activation_function, optimizer=optimizer, w_range=w_range)
+    def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, 
+                        error_function, validation_interval, hidden_activation_function,
+                         optimizer, w_range, grabvars_indexes, grabvars_types, display_interval):
+        model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, 
+                    softmax=softmax, error_function=error_function, validation_interval=validation_interval,
+                    hidden_activation_function=hidden_activation_function, optimizer=optimizer, w_range=w_range,
+                    grabvars_indexes=grabvars_indexes, grabvars_types=grabvars_types, display_interval=display_interval)
         self.openAA.set_model(model)
         model.run(epochs=epochs, bestk=bestk)
 

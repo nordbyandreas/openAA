@@ -3,6 +3,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as PLT
 import tflowtools as TFT
+from random import randint
 
 
 #TODO:
@@ -25,7 +26,7 @@ class Gann():
       validation_interval=None, softmax=False, error_function="mse",
       hidden_activation_function="relu",
       optimizer="gradient_descent",
-      w_range=[-0.1, 0.1]):
+      w_range=[-0.1, 0.1], grabvars_indexes=[], grabvars_types=[]):
    
         self.layer_dims = layer_dims     # dimensions of each layer: [input_dim, x, y, z, output_dim]
         self.case_manager = case_manager  #case manager for the model
@@ -47,9 +48,9 @@ class Gann():
         self.error_function = error_function
         self.softmax_outputs = softmax
         self.layer_modules = []  # layer_modules generated from layer_dims spec - contains weights, biases, etc
-        self.build(self.error_function)  #builds the Gann
+        self.build(self.error_function, grabvars_indexes, grabvars_types)  #builds the Gann
 
-    def build(self, error_function):
+    def build(self, error_function, grabvars_indexes, grabvars_types):
         tf.reset_default_graph()  # This is essential for doing multiple runs
         num_inputs = self.layer_dims[0]
         self.input = tf.placeholder(tf.float64, shape=(None, num_inputs), name="Input")
@@ -63,6 +64,10 @@ class Gann():
         if self.softmax_outputs: self.output = tf.nn.softmax(self.output)
         self.target = tf.placeholder(tf.float64, shape=(None, layer_module.outsize), name="Target")
         self.configure_learning(error_function)
+        for i in range(len(grabvars_indexes)):
+            self.add_grabvar(grabvars_indexes[i], grabvars_types[i])
+
+
 
     def configure_learning(self, error_function):
         if error_function == "mse" or error_function == "mean_squared_error":
@@ -109,17 +114,46 @@ class Gann():
         self.saved_state_path = self.state_saver.save(session, spath, global_step=step)
 
     
-    def predict(self, case, bestk=None):
+    def predict(self, num, bestk=None):
         self.reopen_current_session()
-        feeder = {self.input: [case[0]]}
-        print("input: ")
-        print([case[0]])
-        print("target: ")
-        print([case[1]])
-        print("output: ")
-        print(self.current_session.run(self.output, feed_dict=feeder))
-    
+        tCases = self.case_manager.get_testing_cases()
+        print("\n\n ..start predict on " + str(num) + " random case(s) :  \n")
+        for j in range(num):
+            index = randint(0, len(tCases)-1)
+            case = tCases[index]
+            feeder = {self.input: [case[0]]}
+            print("--CASE NR " + str(index) + ":--")
+            print("input: ")
+            print([case[0]])
+            print("target: ")
+            print([case[1]])
+            print("Actual OUTPUT: ")
+            print(self.current_session.run(self.output, feed_dict=feeder))
+            print("\n")
+        self.close_current_session(view=False)
+        print("\n\n ..predictions over ...  \n\n")
 
+    def do_mapping(self, sess, numCases, msg="Mapping"):
+        self.reopen_current_session()
+        tCases = self.case_manager.get_training_cases()
+        mapList = []
+        for j in range(numCases):
+            index = randint(0, len(tCases)-1)
+            case = tCases[index]
+            feeder = {self.input: [case[0]]}
+            result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
+            mapList.append(result[1])
+
+        print(mapList)
+        self.close_current_session(view=False)
+
+
+
+    # Grabvars are displayed by my own code, so I have more control over the display format.  Each
+    # grabvar gets its own matplotlib figure in which to display its value.
+    def add_grabvar(self,module_index,type='wgt'):
+        self.grabvars.append(self.layer_modules[module_index].getvar(type))
+        self.grabvar_figures.append(PLT.figure())
 
 
     def testing_session(self, sess, bestk=None):
@@ -156,20 +190,11 @@ class Gann():
                 _,grabvals,_ = self.run_one_step([self.trainer], gvars, self.probes, session=sess, 
                                 feed_dict=feeder, step=step, display_interval=self.display_interval)
                 error += grabvals[0]
-            print("------error------- loop: "+str(i))
-            print(str(error/num_minibatches))
-            print("-----target and output ---- ")
-            #print(sess.run(self.target))
+            print("---Epoch: " + str(i))
+            print("---Average error: " + str(error/num_minibatches) + "\n")
             self.error_history.append((step, error/num_minibatches))
             self.consider_validation_testing(step, sess)
-        self.global_training_step += epochs
-
-        """
-        print(" \n\n\n Error history: \n\n")
-        print(self.error_history)
-        print("\n\n")
-        """
-        
+        self.global_training_step += epochs   
         TFT.plot_training_history(self.error_history, self.validation_history,xtitle="Epoch",ytitle="Error",
                                    title="",fig=not(continued))
 
