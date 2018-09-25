@@ -1,4 +1,3 @@
-
 import tflowtools as TFT
 
 
@@ -6,7 +5,7 @@ class FileReader():
     def __init__(self):
         self.path = "../datasets/"
 
-
+        
     #reads csv file with dota
     def readDOTAfile(self, filename):
         lines = [line.rstrip('\n') for line in open(self.path + filename)]
