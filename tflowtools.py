@@ -479,7 +479,7 @@ def gen_dim_reduced_data(feature_array,target_size,eigen_values,eigen_vectors):
     w_transform = np.array(best_vectors).transpose()
     return np.dot(feature_array,w_transform)
 
-# *************** DENDROGRAM*************************
+# *************** ROGRAM*************************
 # Options:
 # orientation = top, bottom, left, right (refers to location of the root of the tree)
 # mode = single, average, complete, centroid, ward, median

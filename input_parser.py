@@ -4,7 +4,8 @@ import numpy as np
 import mnist_basics as mnist
 import filereader as fr
 import matplotlib.pyplot as PLT
-
+from sklearn.datasets import load_iris
+from sklearn import preprocessing
 
 class ModelParameters():
     def __init__(self):
@@ -131,7 +132,7 @@ class InputParser():
                         t = str(input("choose type: "))
                         self.mp.grabvars_indexes.append(index)
                         self.mp.grabvars_types.append(t)
-                        print(t + " from index " + str(index) + " added. \n")
+                        print("\nvar '" + t + "' from index " + str(index) + " added to grabvars. \n")
 
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -155,6 +156,9 @@ class InputParser():
         elif cmd == "do_mapping" or cmd == "map":
             numCases = int(input("number of cases?  (15-20 is normal) : "))
             self.openAA.model.do_mapping(numCases=numCases)
+        elif cmd == "dendro" or cmd == "dendrogram":
+            numCases = int(input("number of cases?  : "))
+            self.openAA.model.gen_dendrogram(numCases)
         else:
             print("command \""+cmd+"\" not recognized")
 
@@ -200,6 +204,7 @@ class InputParser():
             ds = CaseManager(TFT.gen_vector_count_cases(vectorNumber, vectorLength), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+            print(ds.training_cases[0])
 
         elif dataset == "segmentcounter":
             vectorNumber = int(input("Number of cases: "))
@@ -227,43 +232,100 @@ class InputParser():
             
             self.openAA.set_case_manager(ds)
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+            print(ds.training_cases[0])
 
         elif dataset == "wine":
+            print("\n")
             #TODO : load wine dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("wine.txt")
+            cases = filereader.readfile("wine.txt", 9)
             print("first: "+str(len(cases)))
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
             print("second: "+str(len(cases)))
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
+            print((ds.training_cases[0]))
+            print((ds.training_cases[0][0]))
+            print((ds.training_cases[0][1]))
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+            i = 0
+            for case in ds.training_cases:
+                try:
+                    if len(case[0]) != len(ds.training_cases[0][0]):
+                        print(len(case[0]))
+                except Exception as e:
+                    print("HEI!!   input")
+                    print(case)
+                    print("line nr " + str(i))
+                try:
+                    if len(case[1]) != len(ds.training_cases[0][1]):
+                        print(len(case[1]))
+                except Exception as e:
+                    print("HEI!!   target")
+                    print(case)
+                    print("line nr " + str(i))
+                i += 1
+
 
         elif dataset == "glass":
+            print("\n")
             #TODO : load glass dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("glass.txt")
+            cases = filereader.readfile("glass.txt", 8)
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
+            print((ds.training_cases[0]))
+            print((ds.training_cases[0][0]))
+            print((ds.training_cases[0][1]))
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+            for case in ds.training_cases:
+                if len(case[0]) != len(ds.training_cases[0][0]):
+                    print("HEI!!   input")
+                if len(case[1]) != len(ds.training_cases[0][1]):
+                    print("HEI!!   target")
 
         elif dataset == "yeast":
+            print("\n")
             #TODO : load yeast dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("yeast.txt")
+            cases = filereader.readfile("yeast.txt", 11)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
+            print((ds.training_cases[0]))
+            print((ds.training_cases[0][0]))
+            print((ds.training_cases[0][1]))
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+            i = 0
+            for case in ds.training_cases:
+                try:
+                    if len(case[0]) != len(ds.training_cases[0][0]):
+                        print(len(case[0]))
+                except Exception as e:
+                    print("HEI!!   input")
+                    print(case)
+                    print("line nr " + str(i))
+                try:
+                    if len(case[1]) != len(ds.training_cases[0][1]):
+                        print(len(case[1]))
+                except Exception as e:
+                    print("HEI!!   target")
+                    print(case)
+                    print("line nr " + str(i))
+                i += 1
+
 
         elif dataset == "dota":
+            print("\n")
             #TODO : load DOTA dataset in correct format
             filereader = fr.FileReader()
-            filereader.readDOTAfile("dota2Train.csv")
+            cases = filereader.readDOTAfile("dota2Train.csv")
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
+            print((ds.training_cases[0][0]))
+            print((ds.training_cases[0][1]))
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
 
         else:

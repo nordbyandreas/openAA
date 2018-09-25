@@ -1,5 +1,5 @@
 
-
+import tflowtools as TFT
 
 
 class FileReader():
@@ -23,18 +23,19 @@ class FileReader():
         print(cases[0])
 
     #reads txt file with values separated by "," or ";"
-    def readfile(self, filename):
+    def readfile(self, filename, numClasses):
         lines = [line.rstrip('\n') for line in open(self.path + filename)]
         cases = []
         for line in lines:
             case = []; inp = []
             line = line.replace(";", ",")
             vals = line.split(",")
-            target = float(vals.pop())
+            target = int(vals.pop())
+            target = TFT.int_to_one_hot(target, numClasses, floats=True)
             for val in vals:
                 inp.append(float(val))
             case.append(inp)
-            case.append([target])
+            case.append(target)
             cases.append(case)
         print(cases[0])
         print(cases[1])

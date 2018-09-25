@@ -116,7 +116,7 @@ class Gann():
     
     def predict(self, num, bestk=None):
         self.reopen_current_session()
-        tCases = self.case_manager.get_testing_cases()
+        tCases = self.case_manager.get_training_cases()
         print("\n\n ..start predict on " + str(num) + " random case(s) :  \n")
         for j in range(num):
             index = randint(0, len(tCases)-1)
@@ -154,6 +154,27 @@ class Gann():
                 print(v, end="\n\n")       
         
         self.close_current_session(view=False)
+
+
+    
+    def gen_dendrogram(self, numCases, msg="dendogram"):
+        names = [x.name for x in self.grabvars]
+        self.reopen_current_session()
+        tCases = self.case_manager.get_training_cases()
+        features = []
+        labels = []
+        for i in range(0, numCases):
+            print(i)
+            case = tCases[i]
+            feeder = {self.input: [case[0]], self.target: [case[1]]}
+            result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
+            r = result[1][0][0]
+            print(r)
+            features.append(r); 
+            labels.append(TFT.bits_to_str(case[0]))
+        print(features)
+        print(labels)
+        TFT.dendrogram(features, labels)
 
 
 
