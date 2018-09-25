@@ -113,7 +113,7 @@ class InputParser():
                     else:
                         self.mp.bestk = None
                 elif s[i] == "-softmax" or s[i] == "-sm":
-                    self.mp.softmax = True if self.mp.softmax == None else None
+                    self.mp.softmax = True if self.mp.softmax == False else False
                 elif s[i] == "-error_function" or s[i] == "-ef":
                     self.mp.error_function = s[i+1]
                 elif s[i] == "-validation_interval" or s[i] =="-vint":
