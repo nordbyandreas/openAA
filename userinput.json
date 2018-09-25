@@ -1,25 +1,26 @@
 {
     "dimenstions": {
-        "input layer": 10,
-        "layer one": 20,
-        "layer two": 10,
-        "output layer": 1
+        "input": 10,
+        "hidden1": 20,
+        "hidden2": 10,
+        "output": 1
     },
 
-    "hiddenActivationFunction": "hidde activation function",
+    "hiddenActivationFunction": "relu",
 
-    "outputActivationFunction": "output activation function",
+    "outputActivationFunction": 1,
 
-    "costFunction": "Cost function",
+    "costFunction": "mse",
 
-    "cearningRate": 0.1,
+    "learningRate": 0.1,
 
     "initialWeightRange": {
+        "type": "scaled",
         "lowerbound": -1,
         "upperbound": 1
     },
 
-    "optimizer": "ADAM",
+    "optimizer": "adam",
 
     "dataSource": "parity",
 
@@ -37,7 +38,7 @@
 
     "mapBatchSize": 10,
 
-    "steps": 100,
+    "steps": 300,
 
     "mapLayers": {
         "layerOne": 10,

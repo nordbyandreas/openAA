@@ -4,6 +4,7 @@ import numpy as np
 import mnist_basics as mnist
 import filereader as fr
 import matplotlib.pyplot as PLT
+import json
 
 
 class ModelParameters():
@@ -46,6 +47,7 @@ class InputParser():
    
     def evaluator(self, inputString):
         s = inputString.split()
+        s=[i.lower() for i in s]
         cmd = s[0]
 
         mp = ModelParameters()
@@ -73,11 +75,18 @@ class InputParser():
         
         elif cmd == "load_json" or cmd == "lj":
             inputdata = json.load(open(s[1]))
-            self.layer_dims = [int(i) for i in inputdata["dimenstions"]]
-            self.learning_rate = inputdata["learningRate"]
-            self.display_interval = None
-            self.global_training_step = 0
-            #TODO: add rest of inputs for json9  
+            self.mp.layer_dims = [inputdata["dimenstions"][i] for i in inputdata["dimenstions"]]
+            self.mp.hidden_activation_function = inputdata["hiddenActivationFunction"]
+            self.mp.softmax = True if inputdata["outputActivationFunction"]==1 else False
+            self.mp.error_function = inputdata["costFunction"]
+            self.mp.learning_rate = inputdata["learningRate"]
+            self.mp.w_range = "scaled" if inputdata["initialWeightRange"]["type"] == "scaled" else [inputdata["initialWeightRange"]["lowerbound"], inputdata["initialWeightRange"]["upperbound"]]
+            self.mp.optimizer = inputdata["optimizer"]
+            self.mp.epochs = inputdata["steps"]
+            self.mp.display_interval = None
+            self.mp.global_training_step = 0
+
+            self.data_loader(inputdata["dataSource"], inputdata["caseFraction"], inputdata["testFraction"], inputdata["validationFraction"])
 
         elif cmd == "setup_model" or cmd == "sm":
             print("configuring model params")
@@ -102,7 +111,7 @@ class InputParser():
                     else:
                         self.mp.bestk = None
                 elif s[i] == "-softmax" or s[i] == "-sm":
-                    self.mp.softmax = True
+                    self.mp.softmax = True if self.mp.softmax == False else False
                 elif s[i] == "-error_function" or s[i] == "-ef":
                     self.mp.error_function = s[i+1]
                 elif s[i] == "-validation_interval" or s[i] =="-vint":
@@ -123,15 +132,17 @@ class InputParser():
                     print("layers: " + " ".join(str(e) for e in self.mp.layer_dims))
                     print("types:  wgt , bias, out, in")
                     print("index 0 targets the first hidden layers etc.")
-                    if s[i+1] == "clear":
-                        self.mp.grabvars_indexes = []
-                        self.mp.grabvars_types = []
-                    else:
+                    try:
+                        if s[i+1] == "clear":
+                            self.mp.grabvars_indexes = []
+                            self.mp.grabvars_types = []
+                    except IndexError:
                         index = int(input("choose layer: "))
                         t = str(input("choose type: "))
                         self.mp.grabvars_indexes.append(index)
                         self.mp.grabvars_types.append(t)
                         print(t + " from index " + str(index) + " added. \n")
+
 
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)
@@ -145,6 +156,14 @@ class InputParser():
                                 self.mp.softmax, self.mp.bestk, self.mp.error_function, 
                                 self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, 
                                 self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval)
+
+        elif cmd == "runmore":
+            try:
+                tempEpocs = int(s[1])
+            except IndexError:
+                tempEpocs = 50
+            self.openAA.get_model().runmore(tempEpocs, self.mp.bestk)
+        
         elif cmd == "view_model" or cmd == "vm" or cmd == "view":
             print("\n -------- MODEL PARAMETERS:\n")
             print(self.mp)

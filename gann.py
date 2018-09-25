@@ -116,7 +116,7 @@ class Gann():
     
     def predict(self, num, bestk=None):
         self.reopen_current_session()
-        tCases = self.case_manager.get_testing_cases()
+        tCases = self.case_manager.get_training_cases()
         print("\n\n ..start predict on " + str(num) + " random case(s) :  \n")
         for j in range(num):
             index = randint(0, len(tCases)-1)
