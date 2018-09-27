@@ -230,7 +230,7 @@ class Gann():
 
 
     def run_one_step(self, operators, grabbed_vars=None, probed_vars=None, dir="probeview",
-                        session=None, feed_dict=None, step=1, display_interval=1):
+                        session=None, feed_dict=None, step=1, display_interval=1, testing = False):
         sess = session if session else TFT.gen_initialized_session(dir=dir)
         if probed_vars is not None:
             results = sess.run([operators, grabbed_vars, probed_vars], feed_dict=feed_dict)
@@ -274,7 +274,7 @@ class Gann():
 
      
     def display_grabvars(self, grabbed_vals, grabbed_vars, step=1):
-        names = [x.name for x in grabbed_vars];
+        names = [x.name for x in grabbed_vars]
         msg = "Grabbed Variables at Step " + str(step)
         print("\n" + msg, end="\n")
         fig_index = 0
@@ -298,8 +298,10 @@ class Gann():
         self.test_func = self.error
         if bestk is not None:
             self.test_func = self.gen_match_counter(self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
+        print("\n before run one step\n")
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
-                                                feed_dict=feeder, display_interval=None)
+                                                feed_dict=feeder, display_interval=None, testing=True)
+        print("\ntest func pass\n")
         if bestk is None:
             print('%s Set Error = %f ' % (msg, testres))
         else:
@@ -316,7 +318,17 @@ class Gann():
     # problems when ALL outputs are the same value, such as 0, since in_top_k would then signal a match for any
     # target.  Unfortunately, top_k requires a different set of arguments...and is harder to use.
     def gen_match_counter(self, logits, labels, k=1):
+        print("logits: \n")
+        print(tf.cast(logits, tf.float32))
+        print("labels: \n")
+        print(labels)
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
+        print("correct: \n")
+        print(correct)
+        print("reduce sum \n")
+        print(tf.cast(correct, tf.int32))
+        print("whole sum: \n")
+        print(tf.reduce_sum(tf.cast(correct, tf.int32)))
         return tf.reduce_sum(tf.cast(correct, tf.int32))
 
 
@@ -435,80 +447,3 @@ class CaseManager():
 
 
 
-
-
-#Parity 
-
-"""
-keepRunning = True
-while keepRunning:
-    run = input("start?  'y' to run")
-    if run == "y":
-        cman = CaseManager(TFT.gen_all_parity_cases(10, False), 0.1, 0.1)
-        model = Gann([10, 20, 10, 1], cman, learning_rate=0.1)
-        model.run(epochs=100)
-    else: 
-        keepRunning = False
-"""
-
-
-
-#Symmetry
-"""
-keepRunning = True
-while keepRunning:
-    run = input("start?  'y' to run")
-    if run == "y":
-        cman = CaseManager(TFT.gen_symvect_dataset(101, 2000), 0.1, 0.1)
-        model = Gann([101, 20, 20, 1], cman, learning_rate=0.1)
-        model.run(epochs=100)
-    else: 
-        keepRunning = False
-"""
-
-#Autoencoder
-"""
-keepRunning = True
-while keepRunning:
-    run = input("start?  'y' to run")
-    if run == "y":
-        cman = CaseManager(TFT.gen_all_one_hot_cases(10), 0.1, 0.1)
-        model = Gann([10, 20, 20, 10], cman, learning_rate=0.1)
-        model.run(epochs=100)
-    else: 
-        keepRunning = False
-"""
-
-
-#Bitcounter
-#may need to do softmax here ? 
-"""
-keepRunning = True
-while keepRunning:
-    run = input("start?  'y' to run")
-    if run == "y":
-        ##wrong method here !
-        cases = TFT.gen_all_one_hot_cases(3, 10)
-        print(cases)
-        cman = CaseManager(cases, 0.1, 0.1)
-        model = Gann([3, 20, 20, 3], cman, learning_rate=0.1)
-        model.run(epochs=100)
-    else: 
-        keepRunning = False
-"""
-
-
-
-#Segment-counter
-"""
-keepRunning = True
-while keepRunning:
-    run = input("start?  'y' to run")
-    if run == "y":
-        cases = TFT.gen_segmented_vector_cases(25, 1000, 0, 8)
-        cman = CaseManager(cases, 0.1, 0.1)
-        model = Gann([25, 50, 50, 9], cman, learning_rate=0.1)
-        model.run(epochs=100)
-    else: 
-        keepRunning = False
-"""
