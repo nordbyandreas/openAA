@@ -33,6 +33,9 @@ class ModelParameters():
         self.epochs = 100
         self.bestk = None
 
+        #values for one hot
+        self.custom_buckets = None
+
     def __str__(self):
         return ' ,  '.join(['( {key} = {value} )'.format(key=key, value=self.__dict__.get(key)) for key in self.__dict__])
  
@@ -144,6 +147,18 @@ class InputParser():
                         self.mp.grabvars_indexes.append(index)
                         self.mp.grabvars_types.append(t)
                         print("\nvar '" + t + "' from index " + str(index) + " added to grabvars. \n")
+                
+                elif s[i] == "-custom_buckets" or s[i] == "-cb":
+                    self.mp.custom_buckets = []
+                    if s[i+1]=="none":
+                        self.mp.custom_buckets = None
+                    else:
+                        for j in range(i+1, len(s)):
+                            if s[j][0]=="-":
+                                break
+                            self.mp.custom_buckets.append(int(s[j]))
+                elif s[i] == "-batch_size" or s[i] == "-bs":
+                    self.mp.minibatch_size = int(s[i+1])
 
 
             print("\n -------- MODEL PARAMETERS:\n")
@@ -157,7 +172,7 @@ class InputParser():
             self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, 
                                 self.mp.softmax, self.mp.bestk, self.mp.error_function, 
                                 self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, 
-                                self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval)
+                                self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval, self.mp.minibatch_size)
 
         elif cmd == "runmore":
             try:
@@ -186,11 +201,11 @@ class InputParser():
 
     def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, 
                         error_function, validation_interval, hidden_activation_function,
-                         optimizer, w_range, grabvars_indexes, grabvars_types, display_interval):
+                        optimizer, w_range, grabvars_indexes, grabvars_types, display_interval, minibatch_size):
         model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, 
                     softmax=softmax, error_function=error_function, validation_interval=validation_interval,
                     hidden_activation_function=hidden_activation_function, optimizer=optimizer, w_range=w_range,
-                    grabvars_indexes=grabvars_indexes, grabvars_types=grabvars_types, display_interval=display_interval)
+                    grabvars_indexes=grabvars_indexes, grabvars_types=grabvars_types, display_interval=display_interval, minibatch_size=minibatch_size)
         self.openAA.set_model(model)
         model.run(epochs=epochs, bestk=bestk)
 
@@ -258,7 +273,7 @@ class InputParser():
             print("\n")
             #TODO : load wine dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("wine.txt", 9)
+            cases = filereader.readfile("wine.txt", 9 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), self.mp.custom_buckets, True)
             print("first: "+str(len(cases)))
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
@@ -292,7 +307,7 @@ class InputParser():
             print("\n")
             #TODO : load glass dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("glass.txt", 8)
+            cases = filereader.readfile("glass.txt", 8 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), self.mp.custom_buckets, True)
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
@@ -311,7 +326,7 @@ class InputParser():
             print("\n")
             #TODO : load yeast dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("yeast.txt", 11)
+            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), self.mp.custom_buckets)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0]))

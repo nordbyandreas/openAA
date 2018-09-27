@@ -84,7 +84,7 @@ def int_to_bits(i,num_bits):
     return [int(b) for b in '0' * (num_bits - len(s)) + s]
 
 def all_ints_to_bits(num_bits):
-    return [int_to_bits(i) for i in range(2**num_bits)]
+    return [int_to_bits(i, num_bits) for i in range(2**num_bits)]
 
 # Convert an integer k to a sparse vector in which all bits are "off" except the kth bit.  Note: this
 # is zero-based, so the one-hot vector for 0 is 10000..., and for 1 is 010000..
@@ -98,6 +98,7 @@ def int_to_one_hot(int,size,off_val=0, on_val=1,floats=False):
         return v
 
 def one_hot_to_int(vect,on_val=1): return vect.index(on_val)
+
 
 # Generate all one-hot vectors of length len
 def all_one_hots(len, floats=False):
