@@ -210,6 +210,8 @@ class Gann():
             gvars = [self.error] + self.grabvars
             minibatch_size = self.minibatch_size; num_cases = len(cases); num_minibatches = math.ceil(num_cases/minibatch_size)
             
+            #randomize before each epoch
+            np.random.shuffle(cases)
             #TODO: Minibatches should be picked randomly, ref Keiths message on blackboard 
             for c_start in range(0, num_cases, minibatch_size): # Loop through cases, one minibatch at a time.
                 c_end = min(num_cases, c_start + minibatch_size)

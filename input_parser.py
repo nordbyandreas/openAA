@@ -273,7 +273,7 @@ class InputParser():
             print("\n")
             #TODO : load wine dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("wine.txt", 9 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), self.mp.custom_buckets, True)
+            cases = filereader.readfile("wine.txt", 9 if self.mp.custom_buckets is None else 6, [3, 4, 5, 6, 7, 8], True)
             print("first: "+str(len(cases)))
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
@@ -307,7 +307,7 @@ class InputParser():
             print("\n")
             #TODO : load glass dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("glass.txt", 8 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), self.mp.custom_buckets, True)
+            cases = filereader.readfile("glass.txt", 8 if self.mp.custom_buckets is None else 6, [1, 2, 3, 5, 6, 7], True)
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
@@ -326,7 +326,7 @@ class InputParser():
             print("\n")
             #TODO : load yeast dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), self.mp.custom_buckets)
+            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0]))

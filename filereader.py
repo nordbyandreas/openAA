@@ -11,7 +11,7 @@ class FileReader():
     def normalize_input(self, cases):
         inp, targets = zip(*cases)
         nparr = np.array(inp)
-        normalized_X = preprocessing.normalize(nparr, axis=0)
+        normalized_X = preprocessing.normalize(nparr, axis=0, norm="max")
         normalized_X = normalized_X.tolist()
 
         return list(zip(normalized_X, targets))
