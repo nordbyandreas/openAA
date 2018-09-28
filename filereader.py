@@ -17,19 +17,25 @@ class FileReader():
         return list(zip(normalized_X, targets))
     
     #reads csv file with dota
-    def readDOTAfile(self, filename):
+    def readDOTAfile(self, filename, onehot=False):
         lines = [line.rstrip('\n') for line in open(self.path + filename)]
         cases = []
+        b = [-1.0, 1.0]
         for line in lines:
             vals = line.split(",")
             inp = []; case = []
-            target  = float(vals.pop(0))
+            if onehot:
+                target = b.index(((float(vals.pop(0)))))
+                target = TFT.int_to_one_hot(target, len(b), floats=True)
+            else:
+                target  = float(vals.pop(0))
             for val in vals:
                 inp.append(float(val))
             case.append(inp)
-            case.append([target])
+            case.append(target)
             cases.append(case)
         print(cases[0])
+        return cases
 
     #reads txt file with values separated by "," or ";"
     def readfile(self, filename, numClasses, custom_buckets, normalize = False):

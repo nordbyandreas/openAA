@@ -356,7 +356,10 @@ class InputParser():
             print("\n")
             #TODO : load DOTA dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readDOTAfile("dota2Train.csv")
+            onehot = input("one hot encode? y/n")
+            if onehot is not "n":
+                onehot = True
+            cases = filereader.readDOTAfile("dota2Train.csv", onehot=onehot)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0][0]))
