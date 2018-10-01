@@ -131,7 +131,7 @@ class InputParser():
                     else:
                         self.mp.w_range = []
                         self.mp.w_range.append(float(s[i+1]))
-                        self.mp.w_range.append(float(s[i+2]))
+                        self.mp.w_range.append(float(s[i+2])*-1)
                 elif s[i] == "-add_grabvars" or s[i] == "-ag":
                     print("\n-- 'add grabvars', choose layerindex and type: \n")
                     print("layers: " + " ".join(str(e) for e in self.mp.layer_dims))
@@ -326,7 +326,7 @@ class InputParser():
             print("\n")
             #TODO : load yeast dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else len(self.mp.custom_buckets), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0]))

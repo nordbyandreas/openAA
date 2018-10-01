@@ -73,7 +73,9 @@ class Gann():
         if error_function == "mse" or error_function == "mean_squared_error":
             self.error = tf.reduce_mean(tf.square(self.target - self.output), name="MSE")
         elif error_function == "cross_entropy" or error_function == "ce":
-            self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
+            #self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
+            self.error = tf.losses.softmax_cross_entropy(self.target, self.output)
+            #self.error = tf.losses.sigmoid_cross_entropy(self.target, self.output)
         self.predictor = self.output #simple prediction runs will request the value of output neurons
         #defining the training operator
         if self.optimizer == "gradient_descent":
@@ -374,7 +376,7 @@ class LayerModule():
             self.weights = tf.Variable(np.random.uniform(self.w_range[0], self.w_range[1], size=(self.insize, self.outsize)),
                             name=self.name + "-weights", trainable=True)
 
-        self.biases = tf.Variable(np.random.uniform(0, 0, size=self.outsize),
+        self.biases = tf.Variable(np.random.uniform(1, -1, size=self.outsize),
                         name=self.name + "-bias", trainable=True)
         #Edited setting hidden activation function
         if self.hidden_activation_function == "relu":
