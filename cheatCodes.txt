@@ -36,3 +36,10 @@ SYMMETRY:
  ( display_interval = None ) ,  ( lr_freq = None ) ,  ( softmax = False ) ,  ( error_function = mse ) ,  ( grabvars_types = [] ) ,
   ( minibatch_size = 8 ) ,  ( bestk = None ) ,  ( bs_freq = None ) ,  ( grabvars_indexes = [] ) ,  ( layer_dims = [101, 40, 20, 1] ) ,
   ( epochs = 20 ) ,  ( custom_buckets = None ) ,  ( optimizer = adam ) ,  ( global_training_step = 0 )
+
+MINES:
+
+( layer_dims = [60, 10, 2] ) ,  ( learning_rate = 0.01 ) ,  ( display_interval = 10 ) ,  ( global_training_step = 0 ) ,  ( minibatch_size = 10 ) , 
+ ( validation_interval = None ) ,  ( softmax = True ) ,  ( error_function = mse ) ,  ( hidden_activation_function = relu ) ,  ( optimizer = rms ) , 
+  ( w_range = scaled ) ,  ( grabvars_indexes = [] ) ,  ( grabvars_types = [] ) ,  ( epochs = 250 ) ,  ( bestk = 1 ) ,  ( custom_buckets = None ) , 
+   ( lr_freq = None ) ,  ( bs_freq = None )
