@@ -290,7 +290,7 @@ def gen_segmented_vector(vectorsize,numsegs,onval=1,offval=0):
         vect = [offval] * vectorsize
         if numsegs <= 0: return vect
         else:
-            min_gaps = numsegs - 1 ;
+            min_gaps = numsegs - 1
             max_chunk_size = vectorsize - min_gaps; min_chunk_size = numsegs
             chunk_size = NPR.randint(min_chunk_size,max_chunk_size+1)
             seg_sizes = gen_random_pieces(chunk_size,numsegs)
@@ -390,7 +390,7 @@ def simple_scatter_plot(points,alpha=0.5,radius=3):
     PLT.scatter(a[0],a[1],c=colors,alpha=alpha,s=np.pi*radius**2)
     PLT.draw()
 
-# This is Hinton's classic plot of a matrix (which may represent snapshots of weights or a time series of
+# This is Hinton's classic plot o   f a matrix (which may represent snapshots of weights or a time series of
 # activation values).  Each value is represented by a red (positive) or blue (negative) square whose size reflects
 # the absolute value.  This works best when maxsize is hardwired to 1.  The transpose (trans) arg defaults to
 # true so that matrices are plotted with rows along a horizontal plane, with the 0th row on top.
@@ -501,5 +501,3 @@ def dendrogram(features,labels,metric='euclidean',mode='average',ax=None,title='
 def get_fraction_of_cases(cases, caseFraction):
     step = math.floor(1/caseFraction)
     return [cases[i] for i in range(0,len(cases), step)]
-
-

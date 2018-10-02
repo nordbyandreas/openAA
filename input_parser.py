@@ -245,7 +245,7 @@ class InputParser():
 
             #Default values for parity
             #TODO finn bra settings for parity
-            self.mp.layer_dims=[10, 20, 40, 20, 1]
+            self.mp.layer_dims=[10, 8, 6, 1]
             self.mp.learning_rate = 0.25
             self.mp.hidden_activation_function = "relu"
             self.mp.softmax = False
@@ -263,14 +263,14 @@ class InputParser():
             vectorLength = int(input("Length of vectors: "))
             ds = CaseManager(TFT.gen_symvect_dataset(vectorLength, vectorNumber), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
-
             #Default values for symmetry
             self.mp.layer_dims=[vectorLength, 40, 20, 1]
-            self.mp.learning_rate = 0.25
+            self.mp.learning_rate = 0.001
             self.mp.hidden_activation_function = "relu"
             self.mp.softmax = False
             self.mp.bestk = None
             self.mp.epochs = 60
+            self.mp.optimizer = "adam"
             self.mp.error_function = "mse"
             self.mp.minibatch_size = 10
 
@@ -415,6 +415,16 @@ class InputParser():
             if onehot is not "n":
                 onehot = True
             cases = filereader.readDOTAfile("dota2Train.csv", onehot=onehot)
+            ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
+            self.openAA.set_case_manager(ds)
+            print((ds.training_cases[0][0]))
+            print((ds.training_cases[0][1]))
+            print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+
+        elif dataset == "mines":
+            print("\n")
+            filereader = fr.FileReader()
+            cases = filereader.readMineFile("mines.txt")
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0][0]))

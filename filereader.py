@@ -37,6 +37,24 @@ class FileReader():
         print(cases[0])
         return cases
 
+    def readMineFile(self, filename):
+        lines = [line.rstrip('\n') for line in open(self.path + filename)]
+        onehots = ["R", "M"]
+        cases = []
+        for line in lines:
+            case = []; inp = []
+            vals = line.split(",")
+            target = onehots.index(vals.pop())
+            target = TFT.int_to_one_hot(target, 2, floats=True)
+            for val in vals:
+                inp.append(float(val))
+            case.append(inp)
+            case.append(target)
+            cases.append(case)
+        print(cases[0])
+        print(cases[1])
+        return cases
+
     #reads txt file with values separated by "," or ";"
     def readfile(self, filename, numClasses, custom_buckets, normalize = False):
         lines = [line.rstrip('\n') for line in open(self.path + filename)]
