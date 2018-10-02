@@ -36,6 +36,9 @@ class ModelParameters():
         #values for one hot
         self.custom_buckets = None
 
+        self.lr_freq = None
+        self.bs_freq = None
+
     def __str__(self):
         return ' ,  '.join(['( {key} = {value} )'.format(key=key, value=self.__dict__.get(key)) for key in self.__dict__])
  
@@ -159,6 +162,16 @@ class InputParser():
                             self.mp.custom_buckets.append(int(s[j]))
                 elif s[i] == "-batch_size" or s[i] == "-bs":
                     self.mp.minibatch_size = int(s[i+1])
+                elif s[i] == "-lr_freq" or s[i] == "-lrf":
+                    if s[i+1] == "none" or s[i+1] == "None":
+                        self.mp.lr_freq = None
+                    else:
+                        self.mp.lr_freq = int(s[i+1])
+                elif s[i] == "-bs_freq" or s[i] == "-bsf":
+                    if s[i+1] == "none" or s[i+1] == "None":
+                        self.mp.bs_freq = None
+                    else:
+                        self.mp.bs_freq = int(s[i+1])
 
 
             print("\n -------- MODEL PARAMETERS:\n")
@@ -172,7 +185,8 @@ class InputParser():
             self.build_and_run(self.mp.layer_dims, self.mp.learning_rate, self.mp.epochs, 
                                 self.mp.softmax, self.mp.bestk, self.mp.error_function, 
                                 self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, 
-                                self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval, self.mp.minibatch_size)
+                                self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval, self.mp.minibatch_size, 
+                                self.mp.lr_freq, self.mp.bs_freq)
 
         elif cmd == "runmore":
             try:
@@ -201,11 +215,13 @@ class InputParser():
 
     def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, 
                         error_function, validation_interval, hidden_activation_function,
-                        optimizer, w_range, grabvars_indexes, grabvars_types, display_interval, minibatch_size):
+                        optimizer, w_range, grabvars_indexes, grabvars_types, display_interval, minibatch_size,
+                         lr_freq, bs_freq):
         model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, 
                     softmax=softmax, error_function=error_function, validation_interval=validation_interval,
                     hidden_activation_function=hidden_activation_function, optimizer=optimizer, w_range=w_range,
-                    grabvars_indexes=grabvars_indexes, grabvars_types=grabvars_types, display_interval=display_interval, minibatch_size=minibatch_size)
+                    grabvars_indexes=grabvars_indexes, grabvars_types=grabvars_types, display_interval=display_interval, minibatch_size=minibatch_size,
+                    lr_freq = lr_freq, bs_freq=bs_freq)
         self.openAA.set_model(model)
         model.run(epochs=epochs, bestk=bestk)
 

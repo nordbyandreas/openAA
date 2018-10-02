@@ -26,7 +26,8 @@ class Gann():
       validation_interval=None, softmax=False, error_function="mse",
       hidden_activation_function="relu",
       optimizer="gradient_descent",
-      w_range=[-0.1, 0.1], grabvars_indexes=[], grabvars_types=[]):
+      w_range=[-0.1, 0.1], grabvars_indexes=[], grabvars_types=[],
+       lr_freq = None, bs_freq = None):
    
         self.layer_dims = layer_dims     # dimensions of each layer: [input_dim, x, y, z, output_dim]
         self.case_manager = case_manager  #case manager for the model
@@ -44,6 +45,9 @@ class Gann():
         self.hidden_activation_function = hidden_activation_function
         self.optimizer = optimizer
         self.w_range = w_range
+
+        self.lr_freq = lr_freq
+        self.bs_freq = bs_freq
 
         self.error_function = error_function
         self.softmax_outputs = softmax
@@ -208,6 +212,18 @@ class Gann():
     def do_training(self, sess, cases, epochs=100, continued=False):
         if not(continued): self.error_history = []
         for i in range(epochs):
+
+            #decrease learning rate after every self.lr_freq epochs
+            if((self.lr_freq is not None) and ((i % self.lr_freq) == 0) and ( i != 0)):
+                print("\n\n\n halving learning rate..! \n\n\n")
+                self.learning_rate = self.learning_rate / 2
+            
+            if((self.bs_freq is not None) and ((i % self.bs_freq) == 0) and ( i != 0)):
+                print("\n\n\n doubling batch size..! \n\n\n")
+                self.minibatch_size = self.minibatch_size + 1
+
+            ##add fuctionality for increasing batch size every epoch?
+
             error = 0; step = self.global_training_step + i
             gvars = [self.error] + self.grabvars
             minibatch_size = self.minibatch_size; num_cases = len(cases); num_minibatches = math.ceil(num_cases/minibatch_size)
@@ -365,7 +381,7 @@ class LayerModule():
     def build(self):
         layer_name = self.name; layer_outsize = self.outsize
         if self.w_range == "scaled":
-            if self.hidden_activation_function == "relu":
+            if self.hidden_activation_function == "relu" or self.hidden_activation_function == "lrelu":
                 self.weights = tf.Variable(np.random.randn(self.insize, self.outsize)*np.sqrt(2/self.insize),
                             name=self.name + "-weights", trainable=True)
             else:
@@ -376,11 +392,13 @@ class LayerModule():
             self.weights = tf.Variable(np.random.uniform(self.w_range[0], self.w_range[1], size=(self.insize, self.outsize)),
                             name=self.name + "-weights", trainable=True)
 
-        self.biases = tf.Variable(np.random.uniform(1, -1, size=self.outsize),
+        self.biases = tf.Variable(np.random.uniform(0, 0, size=self.outsize),
                         name=self.name + "-bias", trainable=True)
         #Edited setting hidden activation function
         if self.hidden_activation_function == "relu":
             self.output = tf.nn.relu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+        elif self.hidden_activation_function == "lrelu":
+            self.output = tf.nn.leaky_relu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
         elif self.hidden_activation_function == "relu6":
             self.output = tf.nn.relu6(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
         elif self.hidden_activation_function == "crelu":
