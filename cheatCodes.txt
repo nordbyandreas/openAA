@@ -1,0 +1,38 @@
+
+
+YEAST:
+( error_function = cross_entropy ) ,  ( learning_rate = 0.002 ) ,  ( validation_interval = None ) ,  ( epochs = 200 ) , 
+ ( optimizer = adam ) ,  ( hidden_activation_function = relu ) ,  ( display_interval = None ) ,  ( bestk = 1 ) ,  
+( lr_freq = 100 ) ,  ( w_range = scaled ) ,  ( custom_buckets = [1] ) ,  ( global_training_step = 0 ) ,  ( grabvars_types = [] ) , 
+ ( grabvars_indexes = [] ) ,  ( bs_freq = 150 ) ,  ( minibatch_size = 32 ) ,  ( softmax = False ) ,  ( layer_dims = [8, 512, 256, 128, 64, 32, 10] )
+
+
+GLASS:
+( error_function = cross_entropy ) ,  ( learning_rate = 0.002 ) ,  ( validation_interval = None ) ,  ( epochs = 200 ) ,  ( optimizer = adam ) , 
+ ( hidden_activation_function = relu ) ,  ( display_interval = None ) ,  ( bestk = 1 ) ,  ( lr_freq = 100 ) ,  ( w_range = scaled ) ,  ( custom_buckets = [1] ) , 
+ ( global_training_step = 0 ) ,  ( grabvars_types = [] ) ,  ( grabvars_indexes = [] ) ,  ( bs_freq = 150 ) ,  ( minibatch_size = 16 ) ,  ( softmax = False ) , 
+ ( layer_dims = [9, 512, 256, 128, 64, 32, 6] )
+
+
+
+WINE:
+( error_function = cross_entropy ) ,  ( learning_rate = 0.002 ) ,  ( validation_interval = None ) ,  ( epochs = 20 ) ,  ( optimizer = adam ) , 
+ ( hidden_activation_function = relu ) ,  ( display_interval = None ) ,  ( bestk = 1 ) ,  ( lr_freq = 100 ) ,  ( w_range = scaled ) ,  ( custom_buckets = [1] ) , 
+ ( global_training_step = 0 ) ,  ( grabvars_types = [] ) ,  ( grabvars_indexes = [] ) ,  ( bs_freq = 150 ) ,  ( minibatch_size = 32 ) ,  ( softmax = False ) , 
+ ( layer_dims = [11, 512, 256, 128, 64, 32, 6] )
+
+
+PARITY:
+
+( w_range = scaled ) ,  ( learning_rate = 0.001 ) ,  ( hidden_activation_function = relu ) ,  ( validation_interval = None ) ,  
+( display_interval = None ) ,  ( lr_freq = None ) ,  ( softmax = False ) ,  ( error_function = mse ) ,  ( grabvars_types = [] ) ,
+  ( minibatch_size = 8 ) ,  ( bestk = None ) ,  ( bs_freq = None ) ,  ( grabvars_indexes = [] ) ,  ( layer_dims = [10, 20, 40, 20, 1] ) , 
+ ( epochs = 20 ) ,  ( custom_buckets = None ) ,  ( optimizer = adam ) ,  ( global_training_step = 0 )
+
+
+SYMMETRY:
+
+( w_range = scaled ) ,  ( learning_rate = 0.001 ) ,  ( hidden_activation_function = sigmoid ) ,  ( validation_interval = None ) , 
+ ( display_interval = None ) ,  ( lr_freq = None ) ,  ( softmax = False ) ,  ( error_function = mse ) ,  ( grabvars_types = [] ) ,
+  ( minibatch_size = 8 ) ,  ( bestk = None ) ,  ( bs_freq = None ) ,  ( grabvars_indexes = [] ) ,  ( layer_dims = [101, 40, 20, 1] ) ,
+  ( epochs = 20 ) ,  ( custom_buckets = None ) ,  ( optimizer = adam ) ,  ( global_training_step = 0 )
