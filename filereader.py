@@ -34,7 +34,6 @@ class FileReader():
             case.append(inp)
             case.append(target)
             cases.append(case)
-        print(cases[0])
         return cases
 
     def readMineFile(self, filename):
@@ -51,8 +50,6 @@ class FileReader():
             case.append(inp)
             case.append(target)
             cases.append(case)
-        print(cases[0])
-        print(cases[1])
         return cases
 
     #reads txt file with values separated by "," or ";"
@@ -73,14 +70,6 @@ class FileReader():
             case.append(inp)
             case.append(target)
             cases.append(case)
-        print(cases[0])
-        print(cases[1])
         if normalize:
             cases = self.normalize_input(cases)
         return cases
-
-        
-
-            
-        
-
