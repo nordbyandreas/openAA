@@ -1,0 +1,3 @@
+Mnist with -cf 0.2
+
+sm -d 784 512 10 -sm -bk -lr 0.18
