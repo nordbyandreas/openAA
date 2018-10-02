@@ -74,7 +74,7 @@ class Gann():
             self.error = tf.reduce_mean(tf.square(self.target - self.output), name="MSE")
         elif error_function == "cross_entropy" or error_function == "ce":
             self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
-        elif error_function == "sigmoid_cross_entropy" or error_funtion == "sce":
+        elif error_function == "softmax_cross_entropy" or error_function == "sce":
             self.error = tf.losses.softmax_cross_entropy(self.target, self.output)
         self.predictor = self.output #simple prediction runs will request the value of output neurons
         #defining the training operator
