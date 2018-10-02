@@ -77,9 +77,9 @@ class Gann():
         if error_function == "mse" or error_function == "mean_squared_error":
             self.error = tf.reduce_mean(tf.square(self.target - self.output), name="MSE")
         elif error_function == "cross_entropy" or error_function == "ce":
-            #self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
+            self.error = tf.reduce_mean(-tf.reduce_sum(self.target * tf.log(self.output), reduction_indices=[1]), name="Cross_Entropy")
+        elif error_function == "softmax_cross_entropy" or error_function == "sce":
             self.error = tf.losses.softmax_cross_entropy(self.target, self.output)
-            #self.error = tf.losses.sigmoid_cross_entropy(self.target, self.output)
         self.predictor = self.output #simple prediction runs will request the value of output neurons
         #defining the training operator
         if self.optimizer == "gradient_descent":
@@ -91,6 +91,7 @@ class Gann():
         elif self.optimizer == "rms":
             optimizer = tf.train.RMSPropOptimizer(self.learning_rate)
         self.trainer = optimizer.minimize(self.error, name="Backprop")
+
 
 
     def add_layer_module(self, layer_module):
@@ -324,9 +325,33 @@ class Gann():
         print("\ntest func pass\n")
         if bestk is None:
             print('%s Set Error = %f ' % (msg, testres))
+            print('%s Set Correct Classifications = %f %%' % (msg, self.gethits(cases,sess)))
         else:
+
             print('%s Set Correct Classifications = %f %%' % (msg, 100*(testres/len(cases))))
         return testres
+
+    def gethits(self, cases, sess):
+        hits = 0
+        number = 0
+        for case in cases:
+            feeder = {self.input: [case[0]]}
+            guess = sess.run(self.output, feed_dict = feeder)
+            """ print("Round guess 0\n")
+            print(guess[0][0])
+            print("target \n")
+            print(case[1][0]) """
+
+            if round(guess[0][0]) == case[1][0]:
+                hits+=1
+            number+=1
+            """ print("hits \n")
+            print(hits) """
+            if number>10:
+                break
+        return 100*hits/number
+            
+
 
 
     # Logits = tensor, float - [batch_size, NUM_CLASSES].

@@ -1,18 +1,17 @@
 {
     "dimenstions": {
-        "input": 10,
-        "hidden1": 20,
-        "hidden2": 10,
-        "output": 1
+        "input": 784,
+        "hidden1": 512,
+        "output": 10
     },
 
     "hiddenActivationFunction": "relu",
 
-    "outputActivationFunction": 1,
+    "outputActivationFunction": 0,
 
-    "costFunction": "mse",
+    "costFunction": "ce",
 
-    "learningRate": 0.1,
+    "learningRate": 0.18,
 
     "initialWeightRange": {
         "type": "scaled",
@@ -20,9 +19,9 @@
         "upperbound": 1
     },
 
-    "optimizer": "adam",
+    "optimizer": "gradient_descent",
 
-    "dataSource": "parity",
+    "dataSource": "mnist",
 
     "caseFraction": 0.2,
 

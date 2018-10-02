@@ -122,7 +122,7 @@ class InputParser():
                     self.mp.softmax = True if self.mp.softmax == False else False
                 elif s[i] == "-error_function" or s[i] == "-ef":
                     self.mp.error_function = s[i+1]
-                elif s[i] == "-validation_interval" or s[i] =="-vint":
+                elif s[i] == "-validation_interval" or s[i] =="-vi":
                     self.mp.validation_interval = int(s[i+1])
                 elif s[i] == "-hidden_activation_function" or s[i] == "-ha":
                     self.mp.hidden_activation_function = s[i+1]
@@ -133,8 +133,14 @@ class InputParser():
                         self.mp.w_range = "scaled"
                     else:
                         self.mp.w_range = []
-                        self.mp.w_range.append(float(s[i+1]))
-                        self.mp.w_range.append(float(s[i+2])*-1)
+                        if(s[i+1][0]=='n'):
+                            self.mp.w_range.append(-float(s[i+1][1:]))
+                        else:
+                            self.mp.w_range.append(float(s[i+1]))
+                        if(s[i+2][0]=='n'):
+                            self.mp.w_range.append(-float(s[i+2][1:]))
+                        else:
+                            self.mp.w_range.append(float(s[i+2]))
                 elif s[i] == "-add_grabvars" or s[i] == "-ag":
                     print("\n-- 'add grabvars', choose layerindex and type: \n")
                     print("layers: " + " ".join(str(e) for e in self.mp.layer_dims))
@@ -162,6 +168,7 @@ class InputParser():
                             self.mp.custom_buckets.append(int(s[j]))
                 elif s[i] == "-batch_size" or s[i] == "-bs":
                     self.mp.minibatch_size = int(s[i+1])
+                    
                 elif s[i] == "-lr_freq" or s[i] == "-lrf":
                     if s[i+1] == "none" or s[i+1] == "None":
                         self.mp.lr_freq = None
@@ -172,6 +179,10 @@ class InputParser():
                         self.mp.bs_freq = None
                     else:
                         self.mp.bs_freq = int(s[i+1])
+
+                elif s[i] == "-bias_range" or s[i] == "-r":
+                    self.mp.minibatch_size = int(s[i+1])
+
 
 
             print("\n -------- MODEL PARAMETERS:\n")
@@ -232,6 +243,17 @@ class InputParser():
             ds = CaseManager(TFT.gen_all_parity_cases(length, doubleFlag=="y"), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
 
+            #Default values for parity
+            #TODO finn bra settings for parity
+            self.mp.layer_dims=[10, 20, 40, 20, 1]
+            self.mp.learning_rate = 0.25
+            self.mp.hidden_activation_function = "relu"
+            self.mp.softmax = False
+            self.mp.bestk = None
+            self.mp.epochs = 60
+            self.mp.error_function = "mse"
+            self.mp.minibatch_size = 10
+
             #use this to set size of input layer 
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
 
@@ -241,6 +263,17 @@ class InputParser():
             vectorLength = int(input("Length of vectors: "))
             ds = CaseManager(TFT.gen_symvect_dataset(vectorLength, vectorNumber), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
+
+            #Default values for symmetry
+            self.mp.layer_dims=[vectorLength, 40, 20, 1]
+            self.mp.learning_rate = 0.25
+            self.mp.hidden_activation_function = "relu"
+            self.mp.softmax = False
+            self.mp.bestk = None
+            self.mp.epochs = 60
+            self.mp.error_function = "mse"
+            self.mp.minibatch_size = 10
+
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
 
         elif dataset == "autoencoder":
@@ -267,9 +300,6 @@ class InputParser():
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
 
         elif dataset == "mnist":
-            #TODO : load mnist dataset in correct format 
-            #- reorganize into [[[input1], [target ]], [[input1], [target ]]]
-            # -scale between [0-1]
             cases = mnist.load_flat_text_cases("all_flat_mnist_training_cases_text.txt")
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
@@ -280,6 +310,14 @@ class InputParser():
             print("number of cases: " + str(len(cases)))
             print(numbersFordeling)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
+
+            #Default values for mnist
+            self.mp.layer_dims=[784, 512, 10]
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.18
+            self.mp.epochs = 10
+            self.mp.error_function = "sce"
+            self.mp.minibatch_size = 20
             
             self.openAA.set_case_manager(ds)
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
@@ -342,7 +380,8 @@ class InputParser():
             print("\n")
             #TODO : load yeast dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else 10, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else len(self.mp.custom_buckets),
+             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] if self.mp.custom_buckets else None)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0]))
