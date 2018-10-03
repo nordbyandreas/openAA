@@ -158,7 +158,9 @@ class Gann():
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 TFT.hinton_plot(v, fig=self.grabvar_figures[i],title= names[i])
             else:
-                print(v, end="\n\n")       
+                print("\n\n")
+                print(names[i])
+                print(v, end="\n\n")     
         
         self.close_current_session(view=False)
 
@@ -170,7 +172,6 @@ class Gann():
         cases = []
         mapList = []
         for i in range(0, numCases):
-            print(i)
             cases.append(tCases[i])
         inputs = [c[0] for c in cases]; targets = [c[1] for c in cases]
         feeder = {self.input: inputs, self.target: targets}
@@ -178,12 +179,11 @@ class Gann():
         result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
 
         for i, v in enumerate(result[1]):
-            print(v)
-            #TFT.display_matrix(v, fig=self.grabvar_figures[i],title= names[i])
-
             if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
                 TFT.display_matrix(v, fig=self.grabvar_figures[i],title= names[i])
             else:
+                print("\n\n")
+                print(names[i])
                 print(v, end="\n\n")       
         
         self.close_current_session(view=False)
@@ -319,7 +319,7 @@ class Gann():
         session = sess if sess else self.current_session
         self.state_saver.restore(session, spath)
 
-     
+
     def display_grabvars(self, grabbed_vals, grabbed_vars, step=1):
         names = [x.name for x in grabbed_vars]
         msg = "Grabbed Variables at Step " + str(step)
