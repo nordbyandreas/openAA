@@ -65,21 +65,24 @@ class InputParser():
             caseFraction = 1
             validationFraction = 0.1
             testFraction = 0.1
-            for i in range (0, len(s)):
-             
-                if s[i][0]!="-":
-                    continue
-                if s[i] == "-dataset" or s[i] == "-ds":
-                    dataSet = s[i+1]
-                if s[i] == "-casefraction" or s[i] == "-cf":
-                    caseFraction = float(s[i+1])
-                if s[i] == "-testfraction" or s[i] == "-tf":
-                    testFraction = float(s[i+1])
-                if s[i] == "-validationfraction" or s[i] == "-vf":
-                    validationFraction = float(s[i+1])
+            try:
+                for i in range (0, len(s)):
+                
+                    if s[i][0]!="-":
+                        continue
+                    if s[i] == "-dataset" or s[i] == "-ds":
+                        dataSet = s[i+1]
+                    if s[i] == "-casefraction" or s[i] == "-cf":
+                        caseFraction = float(s[i+1])
+                    if s[i] == "-testfraction" or s[i] == "-tf":
+                        testFraction = float(s[i+1])
+                    if s[i] == "-validationfraction" or s[i] == "-vf":
+                        validationFraction = float(s[i+1])
+                self.data_loader(dataSet, caseFraction, testFraction, validationFraction)
+            except Exception as e:
+                print("Cannot load data, did you forget -ds?")
                 
 
-            self.data_loader(dataSet, caseFraction, testFraction, validationFraction)
         
         elif cmd == "load_json" or cmd == "lj":
             inputdata = json.load(open(s[1]))
@@ -219,6 +222,9 @@ class InputParser():
         elif cmd == "dendro" or cmd == "dendrogram":
             numCases = int(input("number of cases?  : "))
             self.openAA.model.gen_dendrogram(numCases)
+        elif cmd == "display_matrix" or cmd == "dmat":
+            numCases = int(input("number of cases?  : "))
+            self.openAA.model.display_matrix(numCases)
         else:
             print("command \""+cmd+"\" not recognized")
 
@@ -245,14 +251,15 @@ class InputParser():
 
             #Default values for parity
             #TODO finn bra settings for parity
-            self.mp.layer_dims=[10, 8, 6, 1]
-            self.mp.learning_rate = 0.25
+            self.mp.layer_dims=[10, 20, 40, 20, 1]
+            self.mp.learning_rate = 0.001
             self.mp.hidden_activation_function = "relu"
             self.mp.softmax = False
             self.mp.bestk = None
-            self.mp.epochs = 60
+            self.mp.epochs = 1000
             self.mp.error_function = "mse"
-            self.mp.minibatch_size = 10
+            self.mp.optimizer = "adam"
+            self.mp.minibatch_size = 100
 
             #use this to set size of input layer 
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
@@ -426,6 +433,17 @@ class InputParser():
             filereader = fr.FileReader()
             cases = filereader.readMineFile("mines.txt")
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
+
+            #Default values for mines
+            self.mp.layer_dims=[60, 10, 2]
+            self.mp.softmax=True
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.01
+            self.mp.epochs = 20
+            self.mp.error_function = "mse"
+            self.mp.optimizer = "rms"
+            self.mp.minibatch_size = 10
+
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0][0]))
             print((ds.training_cases[0][1]))

@@ -17,7 +17,7 @@ from random import randint
 
 # ******* A General Artificial Neural Network ********
 #
-# Based on the GANN class by Keith Downing
+# Ba    sed on the GANN class by Keith Downing
 #
 
 class Gann():
@@ -162,6 +162,32 @@ class Gann():
         
         self.close_current_session(view=False)
 
+    
+    def display_matrix(self, numCases):
+        names = [x.name for x in self.grabvars]
+        self.reopen_current_session()
+        tCases = self.case_manager.get_training_cases()
+        cases = []
+        mapList = []
+        for i in range(0, numCases):
+            print(i)
+            cases.append(tCases[i])
+        inputs = [c[0] for c in cases]; targets = [c[1] for c in cases]
+        feeder = {self.input: inputs, self.target: targets}
+
+        result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
+
+        for i, v in enumerate(result[1]):
+            print(v)
+            #TFT.display_matrix(v, fig=self.grabvar_figures[i],title= names[i])
+
+            if type(v) == np.ndarray and len(v.shape) > 1: # If v is a matrix, use hinton plotting
+                TFT.display_matrix(v, fig=self.grabvar_figures[i],title= names[i])
+            else:
+                print(v, end="\n\n")       
+        
+        self.close_current_session(view=False)
+
 
     
     def gen_dendrogram(self, numCases, msg="dendogram"):
@@ -231,7 +257,6 @@ class Gann():
             
             #randomize before each epoch
             np.random.shuffle(cases)
-            #TODO: Minibatches should be picked randomly, ref Keiths message on blackboard 
             for c_start in range(0, num_cases, minibatch_size): # Loop through cases, one minibatch at a time.
                 c_end = min(num_cases, c_start + minibatch_size)
                 minibatch = cases[c_start:c_end]
@@ -243,6 +268,7 @@ class Gann():
             print("---Epoch: " + str(i))
             print("---Average error: " + str(error/num_minibatches) + "\n")
             self.error_history.append((step, error/num_minibatches))
+
             self.consider_validation_testing(step, sess)
         self.global_training_step += epochs   
         TFT.plot_training_history(self.error_history, self.validation_history,xtitle="Epoch",ytitle="Error",
@@ -319,10 +345,8 @@ class Gann():
         self.test_func = self.error
         if bestk is not None:
             self.test_func = self.gen_match_counter(self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
-        print("\n before run one step\n")
         testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
                                                 feed_dict=feeder, display_interval=None, testing=True)
-        print("\ntest func pass\n")
         if bestk is None:
             print('%s Set Error = %f ' % (msg, testres))
             print('%s Set Correct Classifications = %f %%' % (msg, self.gethits(cases,sess)))
@@ -337,18 +361,10 @@ class Gann():
         for case in cases:
             feeder = {self.input: [case[0]]}
             guess = sess.run(self.output, feed_dict = feeder)
-            """ print("Round guess 0\n")
-            print(guess[0][0])
-            print("target \n")
-            print(case[1][0]) """
 
             if round(guess[0][0]) == case[1][0]:
                 hits+=1
             number+=1
-            """ print("hits \n")
-            print(hits) """
-            if number>10:
-                break
         return 100*hits/number
             
 
@@ -363,17 +379,17 @@ class Gann():
     # problems when ALL outputs are the same value, such as 0, since in_top_k would then signal a match for any
     # target.  Unfortunately, top_k requires a different set of arguments...and is harder to use.
     def gen_match_counter(self, logits, labels, k=1):
-        print("logits: \n")
+        """ print("logits: \n")
         print(tf.cast(logits, tf.float32))
         print("labels: \n")
-        print(labels)
+        print(labels) """
         correct = tf.nn.in_top_k(tf.cast(logits,tf.float32), labels, k) # Return number of correct outputs
-        print("correct: \n")
+        """ print("correct: \n")
         print(correct)
         print("reduce sum \n")
         print(tf.cast(correct, tf.int32))
         print("whole sum: \n")
-        print(tf.reduce_sum(tf.cast(correct, tf.int32)))
+        print(tf.reduce_sum(tf.cast(correct, tf.int32))) """
         return tf.reduce_sum(tf.cast(correct, tf.int32))
 
 
@@ -409,16 +425,20 @@ class LayerModule():
             if self.hidden_activation_function == "relu" or self.hidden_activation_function == "lrelu":
                 self.weights = tf.Variable(np.random.randn(self.insize, self.outsize)*np.sqrt(2/self.insize),
                             name=self.name + "-weights", trainable=True)
+                self.biases = tf.Variable(np.random.uniform(-0.1, 0.1, size=self.outsize),
+                            name=self.name + "-bias", trainable=True)
             else:
                 self.weights = tf.Variable(np.random.randn(self.insize, self.outsize)*np.sqrt(1/self.insize),
                             name=self.name + "-weights", trainable=True)
+                self.biases = tf.Variable(np.random.uniform(-0.1, 0.1, size=self.outsize),
+                            name=self.name + "-bias", trainable=True)
 
         else:
             self.weights = tf.Variable(np.random.uniform(self.w_range[0], self.w_range[1], size=(self.insize, self.outsize)),
                             name=self.name + "-weights", trainable=True)
 
-        self.biases = tf.Variable(np.random.uniform(0, 0, size=self.outsize),
-                        name=self.name + "-bias", trainable=True)
+            self.biases = tf.Variable(np.random.uniform(self.w_range[0], self.w_range[1], size=self.outsize),
+                            name=self.name + "-bias", trainable=True)
         #Edited setting hidden activation function
         if self.hidden_activation_function == "relu":
             self.output = tf.nn.relu(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
@@ -439,7 +459,7 @@ class LayerModule():
         elif self.hidden_activation_function == "bias_add":
             self.output = tf.nn.bias_add(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
         elif self.hidden_activation_function == "sigmoid":
-            self.output = tf.nn.sigmoid(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
+            self.output = tf.nn.sigmoid(tf.matmul(self.input, self  .weights) + self.biases, name=self.name + "-output")
         elif self.hidden_activation_function == "tanh":
             self.output = tf.nn.tanh(tf.matmul(self.input, self.weights) + self.biases, name=self.name + "-output")
         self.ann.add_layer_module(self)
