@@ -306,6 +306,18 @@ class InputParser():
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
             print(ds.training_cases[0])
 
+            #Default values for mines
+            self.mp.layer_dims=[15, 128, 64, 32, 16]
+            self.mp.softmax=True
+            self.mp.hidden_activation_function = "relu"
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.001
+            self.mp.epochs = 100
+            self.mp.w_range = [-0.01, 0.1]
+            self.mp.error_function = "ce"
+            self.mp.optimizer = "adam"
+            self.mp.minibatch_size = 16
+
         elif dataset == "segmentcounter":
             vectorNumber = int(input("Number of cases: "))
             vectorLength = int(input("Length of input vector: "))
