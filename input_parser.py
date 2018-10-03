@@ -39,6 +39,9 @@ class ModelParameters():
         self.lr_freq = None
         self.bs_freq = None
 
+        self.target_accuracy = None
+        self.early_stopping = False
+
     def __str__(self):
         return ' ,  '.join(['( {key} = {value} )'.format(key=key, value=self.__dict__.get(key)) for key in self.__dict__])
  
@@ -186,6 +189,12 @@ class InputParser():
                 elif s[i] == "-bias_range" or s[i] == "-r":
                     self.mp.minibatch_size = int(s[i+1])
 
+                elif s[i] == "-target_accuracy" or s[i] == "-ta":
+                    self.mp.target_accuracy = float(s[i+1])
+                elif s[i] == "-early_stopping" or s[i] == "-es":
+                    self.mp.early_stopping = False if self.mp.early_stopping else True
+                
+
 
 
             print("\n -------- MODEL PARAMETERS:\n")
@@ -200,7 +209,7 @@ class InputParser():
                                 self.mp.softmax, self.mp.bestk, self.mp.error_function, 
                                 self.mp.validation_interval, self.mp.hidden_activation_function, self.mp.optimizer, 
                                 self.mp.w_range, self.mp.grabvars_indexes, self.mp.grabvars_types, self.mp.display_interval, self.mp.minibatch_size, 
-                                self.mp.lr_freq, self.mp.bs_freq)
+                                self.mp.lr_freq, self.mp.bs_freq, self.mp.early_stopping, self.mp.target_accuracy)
 
         elif cmd == "runmore":
             try:
@@ -233,12 +242,12 @@ class InputParser():
     def build_and_run(self, dimensions, learning_rate, epochs, softmax, bestk, 
                         error_function, validation_interval, hidden_activation_function,
                         optimizer, w_range, grabvars_indexes, grabvars_types, display_interval, minibatch_size,
-                         lr_freq, bs_freq):
+                         lr_freq, bs_freq, early_stopping, target_accuracy):
         model = Gann(dimensions, self.openAA.get_case_manager(), learning_rate=learning_rate, 
                     softmax=softmax, error_function=error_function, validation_interval=validation_interval,
                     hidden_activation_function=hidden_activation_function, optimizer=optimizer, w_range=w_range,
                     grabvars_indexes=grabvars_indexes, grabvars_types=grabvars_types, display_interval=display_interval, minibatch_size=minibatch_size,
-                    lr_freq = lr_freq, bs_freq=bs_freq)
+                    lr_freq = lr_freq, bs_freq=bs_freq, target_accuracy=target_accuracy, early_stopping=early_stopping)
         self.openAA.set_model(model)
         model.run(epochs=epochs, bestk=bestk)
 

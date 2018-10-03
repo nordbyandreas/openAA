@@ -27,7 +27,7 @@ class Gann():
       hidden_activation_function="relu",
       optimizer="gradient_descent",
       w_range=[-0.1, 0.1], grabvars_indexes=[], grabvars_types=[],
-       lr_freq = None, bs_freq = None):
+       lr_freq = None, bs_freq = None, early_stopping=False, target_accuracy=None):
    
         self.layer_dims = layer_dims     # dimensions of each layer: [input_dim, x, y, z, output_dim]
         self.case_manager = case_manager  #case manager for the model
@@ -48,6 +48,10 @@ class Gann():
 
         self.lr_freq = lr_freq
         self.bs_freq = bs_freq
+
+        #early stopping vars
+        self.target_accuracy = target_accuracy
+        self.early_stopping = early_stopping
 
         self.error_function = error_function
         self.softmax_outputs = softmax
@@ -100,7 +104,7 @@ class Gann():
     #RUN
     def run(self, epochs=100, sess=None, continued=False, bestk=None):
         PLT.ion()
-        self.training_session(epochs, sess=sess, continued=continued)
+        self.training_session(epochs, sess=sess, continued=continued, bestk=bestk)
         self.test_on_trains(sess=self.current_session, bestk=bestk)
         self.testing_session(sess=self.current_session, bestk=bestk)
         self.close_current_session(view=False)
@@ -229,14 +233,14 @@ class Gann():
         self.do_testing(sess,self.case_manager.get_training_cases(),msg='Total Training',bestk=bestk)
 
 
-    def training_session(self, epochs, sess=None, dir="probeview", continued=False):
+    def training_session(self, epochs, sess=None, dir="probeview", continued=False, bestk=None):
         session = sess if sess else TFT.gen_initialized_session(dir=dir)
         self.current_session = session
         self.roundup_probes()
-        self.do_training(session, self.case_manager.get_training_cases(), epochs, continued=continued)
+        self.do_training(session, self.case_manager.get_training_cases(), epochs, continued=continued, bestk=bestk)
 
 
-    def do_training(self, sess, cases, epochs=100, continued=False):
+    def do_training(self, sess, cases, epochs=100, continued=False, bestk=None):
         if not(continued): self.error_history = []
         for i in range(epochs):
 
@@ -270,6 +274,9 @@ class Gann():
             self.error_history.append((step, error/num_minibatches))
 
             self.consider_validation_testing(step, sess)
+            if self.early_stopping and i % 100 == 0 and i != 0:
+                if self.consider_early_stopping(sess, cases, bestk=bestk, target_accuracy=self.target_accuracy):
+                    break
         self.global_training_step += epochs   
         TFT.plot_training_history(self.error_history, self.validation_history,xtitle="Epoch",ytitle="Error",
                                    title="",fig=not(continued))
@@ -334,7 +341,26 @@ class Gann():
                 print(v, end="\n\n")
 
 
+    def consider_early_stopping(self, sess, cases, msg="Early Stopping", bestk=None, target_accuracy = None):
+        inputs = [case[0] for case in cases]; targets = [case[1] for case in cases]
+        feeder = {self.input: inputs, self.target: targets}
+        self.test_func = self.error
+        if bestk is not None:
+            self.test_func = self.gen_match_counter(self.predictor, [TFT.one_hot_to_int(list(v)) for v in targets], k=bestk)
+        testres, grabvals, _ = self.run_one_step(self.test_func, self.grabvars, self.probes, session=sess,
+                                                feed_dict=feeder, display_interval=None, testing=True)
+        print("\n CONSIDER EARLY STOPPING: \n")
+        if bestk is None:
+            print('%s Set Correct Classifications = %f %% \n' % (msg, self.gethits(cases,sess)))
+            if self.gethits(cases,sess) > target_accuracy:
+                return True
+        else:
 
+            print('%s Set Correct Classifications = %f %% \n' % (msg, 100*(testres/len(cases))))
+            if 100*(testres/len(cases)) > target_accuracy:
+                return True
+        print("\n Target Accuracy NOT reached - continue: \n")
+        return False
 
     # bestk = 1 when you're doing a classification task and the targets are one-hot vectors.  This will invoke the
     # gen_match_counter error function. Otherwise, when
