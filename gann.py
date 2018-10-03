@@ -198,20 +198,28 @@ class Gann():
         names = [x.name for x in self.grabvars]
         self.reopen_current_session()
         tCases = self.case_manager.get_training_cases()
-        features = []
-        labels = []
-        for i in range(0, numCases):
-            print(i)
-            case = tCases[i]
-            feeder = {self.input: [case[0]], self.target: [case[1]]}
-            result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
-            r = result[1][0][0]
-            print(r)
-            features.append(r)
-            labels.append(TFT.bits_to_str(case[0]))
-        print(features)
-        print(labels)
-        TFT.dendrogram(features, labels)
+
+
+        for j in range (0, len(self.grabvars)):
+            features = []
+            labels = []
+            for i in range(0, numCases):
+                print(i)
+                case = tCases[i]
+                feeder = {self.input: [case[0]], self.target: [case[1]]}
+                result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
+                r = result[1][j][0]
+                print("\n\n")
+                print(result[1][j][0])
+                print("\n\n")
+                features.append(r); 
+                labels.append(TFT.bits_to_str(case[0]))
+            print(features)
+            print(labels)
+            #print(features)
+            #print(labels)
+            name = str(names[j]) + "Dendrogram"
+            TFT.dendrogram(features, labels, title=name)
 
 
 
