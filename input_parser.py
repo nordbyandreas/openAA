@@ -265,7 +265,7 @@ class InputParser():
             self.mp.softmax = False
             self.mp.w_range = "scaled"
             self.mp.bestk = None
-            self.mp.epochs = 700
+            self.mp.epochs = 400
             self.mp.error_function = "mse"
             self.mp.optimizer = "adam"
             self.mp.minibatch_size = 100
