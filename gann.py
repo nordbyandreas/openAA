@@ -207,7 +207,7 @@ class Gann():
             result = self.current_session.run([self.output, self.grabvars], feed_dict=feeder)
             r = result[1][0][0]
             print(r)
-            features.append(r); 
+            features.append(r)
             labels.append(TFT.bits_to_str(case[0]))
         print(features)
         print(labels)
@@ -251,7 +251,7 @@ class Gann():
             
             if((self.bs_freq is not None) and ((i % self.bs_freq) == 0) and ( i != 0)):
                 print("\n\n\n doubling batch size..! \n\n\n")
-                self.minibatch_size = self.minibatch_size + 1
+                self.minibatch_size = self.minibatch_size * 2
 
             ##add fuctionality for increasing batch size every epoch?
 

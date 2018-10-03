@@ -34,7 +34,7 @@ class ModelParameters():
         self.bestk = None
 
         #values for one hot
-        self.custom_buckets = None
+        self.custom_buckets = [1]
 
         self.lr_freq = None
         self.bs_freq = None
@@ -259,16 +259,25 @@ class InputParser():
             self.openAA.set_case_manager(ds)
 
             #Default values for parity
-            #TODO finn bra settings for parity
             self.mp.layer_dims=[10, 20, 40, 20, 1]
             self.mp.learning_rate = 0.001
             self.mp.hidden_activation_function = "relu"
             self.mp.softmax = False
+            self.mp.w_range = "scaled"
             self.mp.bestk = None
-            self.mp.epochs = 1000
+            self.mp.epochs = 700
             self.mp.error_function = "mse"
             self.mp.optimizer = "adam"
             self.mp.minibatch_size = 100
+            self.mp.lr_freq = None
+            self.mp.bs_freq = None
+            self.custom_buckets = None
+            self.target_accuracy = None
+            self.early_stopping = False
+
+            
+            
+   
 
             #use this to set size of input layer 
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
@@ -279,16 +288,25 @@ class InputParser():
             vectorLength = int(input("Length of vectors: "))
             ds = CaseManager(TFT.gen_symvect_dataset(vectorLength, vectorNumber), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
+
             #Default values for symmetry
             self.mp.layer_dims=[vectorLength, 40, 20, 1]
             self.mp.learning_rate = 0.001
             self.mp.hidden_activation_function = "relu"
             self.mp.softmax = False
+            self.mp.w_range = "scaled"
             self.mp.bestk = None
-            self.mp.epochs = 60
+            self.mp.epochs = 70
             self.mp.optimizer = "adam"
             self.mp.error_function = "mse"
-            self.mp.minibatch_size = 10
+            self.mp.minibatch_size = 8
+            self.mp.lr_freq = None
+            self.mp.bs_freq = None
+
+            self.custom_buckets = None
+            self.target_accuracy = None
+            self.early_stopping = False
+
 
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
 
@@ -306,7 +324,7 @@ class InputParser():
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
             print(ds.training_cases[0])
 
-            #Default values for mines
+            #Default values for bitcounter
             self.mp.layer_dims=[15, 128, 64, 32, 16]
             self.mp.softmax=True
             self.mp.hidden_activation_function = "relu"
@@ -317,6 +335,12 @@ class InputParser():
             self.mp.error_function = "ce"
             self.mp.optimizer = "adam"
             self.mp.minibatch_size = 16
+            self.mp.lr_freq = None
+            self.mp.bs_freq = None
+
+            self.custom_buckets = None
+            self.target_accuracy = None
+            self.early_stopping = False
 
         elif dataset == "segmentcounter":
             vectorNumber = int(input("Number of cases: "))
@@ -326,6 +350,23 @@ class InputParser():
             ds = CaseManager(TFT.gen_segmented_vector_cases(vectorLength, vectorNumber, minSeg, maxSeg), validation_fraction=validationFraction, test_fraction=testFraction)
             self.openAA.set_case_manager(ds)
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
+
+            self.mp.layer_dims=[25, 128, 64, 32, 12, 9]
+            self.mp.softmax=True
+            self.mp.hidden_activation_function = "relu"
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.0005
+            self.mp.epochs = 200
+            self.mp.w_range = [0, 0.1]
+            self.mp.error_function = "ce"
+            self.mp.optimizer = "adam"
+            self.mp.minibatch_size = 32
+            self.mp.lr_freq = None
+            self.mp.bs_freq = None
+
+            self.custom_buckets = None
+            self.target_accuracy = None
+            self.early_stopping = False
 
         elif dataset == "mnist":
             cases = mnist.load_flat_text_cases("all_flat_mnist_training_cases_text.txt")
@@ -341,11 +382,21 @@ class InputParser():
 
             #Default values for mnist
             self.mp.layer_dims=[784, 512, 10]
+            self.mp.softmax = False
+            self.mp.hidden_activation_function = "relu"
             self.mp.bestk = 1
-            self.mp.learning_rate = 0.18
+            self.mp.learning_rate = 0.001
+            self.mp.w_range = [0, 0.1]
             self.mp.epochs = 10
             self.mp.error_function = "sce"
+            self.mp.optimizer = "adam"
             self.mp.minibatch_size = 20
+            self.mp.lr_freq = None
+            self.mp.bs_freq = None
+
+            self.custom_buckets = None
+            self.target_accuracy = None
+            self.early_stopping = False
             
             self.openAA.set_case_manager(ds)
             print("Input size: "+str(len(ds.training_cases[0][0]))+ ", Output size: "+str(len(ds.training_cases[0][1])))
@@ -361,6 +412,25 @@ class InputParser():
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
             print("second: "+str(len(cases)))
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
+
+            #Default values for wine
+            self.mp.layer_dims=[11, 512, 256, 128, 64, 32, 6]
+            self.softmax = False
+            self.hidden_activation_function = "relu"
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.002
+            self.mp.w_range = "scaled"
+            self.mp.epochs = 20
+            self.mp.error_function = "sce"
+            self.mp.optimizer = "adam"
+            self.mp.custom_buckets = [1]
+            self.mp.minibatch_size = 32
+            self.mp.lr_freq = 150
+            self.mp.bs_freq = 150
+
+            self.target_accuracy = None
+            self.early_stopping = False
+
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0]))
             print((ds.training_cases[0][0]))
@@ -387,12 +457,31 @@ class InputParser():
 
         elif dataset == "glass":
             print("\n")
-            #TODO : load glass dataset in correct format
             filereader = fr.FileReader()
             cases = filereader.readfile("glass.txt", 8 if self.mp.custom_buckets is None else 6, [1, 2, 3, 5, 6, 7], True)
             if caseFraction != 1:
                 cases = TFT.get_fraction_of_cases(cases, caseFraction)
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
+
+            #Default values for glass
+            self.mp.layer_dims=[9, 512, 256, 64, 32, 6]
+            self.softmax = False
+            self.hidden_activation_function = "relu"
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.002
+            self.mp.w_range = [0, 0.1]
+            self.mp.epochs = 200
+            self.mp.error_function = "sce"
+            self.mp.optimizer = "adam"
+            self.mp.custom_buckets = [1]
+            self.mp.minibatch_size = 16
+            self.mp.lr_freq = 100
+            self.mp.bs_freq = 150
+
+            self.target_accuracy = None
+            self.early_stopping = False
+
+
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0]))
             print((ds.training_cases[0][0]))
@@ -406,12 +495,33 @@ class InputParser():
 
         elif dataset == "yeast":
             print("\n")
-            #TODO : load yeast dataset in correct format
             filereader = fr.FileReader()
-            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else len(self.mp.custom_buckets),
-             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] if self.mp.custom_buckets else None)
+            cases = filereader.readfile("yeast.txt", 11 if self.mp.custom_buckets is None else 10,
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
             ds = CaseManager(cases, validation_fraction=validationFraction, test_fraction=testFraction)
+            
+            self.mp.layer_dims=[8, 512, 256, 64, 32, 10]
+            self.softmax = False
+            self.hidden_activation_function = "relu"
+            self.mp.bestk = 1
+            self.mp.learning_rate = 0.002
+            self.mp.w_range = [0, 0.1]
+            self.mp.epochs = 600
+            self.mp.error_function = "sce"
+            self.mp.optimizer = "adam"
+            self.mp.custom_buckets = [1]
+            self.mp.minibatch_size = 32
+            self.mp.lr_freq = 100
+            self.mp.bs_freq = 150
+
+            self.target_accuracy = None
+            self.early_stopping = False
+
+            
             self.openAA.set_case_manager(ds)
+
+
+
             print((ds.training_cases[0]))
             print((ds.training_cases[0][0]))
             print((ds.training_cases[0][1]))
@@ -458,12 +568,20 @@ class InputParser():
             #Default values for mines
             self.mp.layer_dims=[60, 10, 2]
             self.mp.softmax=True
+            self.hidden_activation_function = "relu"
             self.mp.bestk = 1
             self.mp.learning_rate = 0.01
+            self.mp.w_range = "scaled"
             self.mp.epochs = 20
             self.mp.error_function = "mse"
             self.mp.optimizer = "rms"
             self.mp.minibatch_size = 10
+            self.mp.lr_freq = None
+            self.mp.bs_freq = None
+
+            self.custom_buckets = None
+            self.target_accuracy = None
+            self.early_stopping = False
 
             self.openAA.set_case_manager(ds)
             print((ds.training_cases[0][0]))
